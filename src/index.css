@@ -1,0 +1,48 @@
+@import url("https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond&family=Pinyon+Script&family=Cinzel:wght@400;500;600&display=swap");
+
+/* src/index.css */
+
+/* 1. Define all your fonts & colors as CSS vars */
+@theme {
+  /* fonts */
+  --font-pinyon: "Pinyon Script", cursive;
+  --font-cinzel: "Cinzel", serif;
+
+  /* primary palette (base: #c2c2c2) */
+  --color-primary-50: #ffffff;
+  --color-primary-100: #f2f2f2;
+  --color-primary-200: #e6e6e6;
+  --color-primary-300: #dadada;
+  --color-primary-400: #cecece;
+  --color-primary-500: #c2c2c2;
+  --color-primary-600: #919191;
+  --color-primary-700: #616161;
+  --color-primary-800: #303030;
+  --color-primary-900: #000000;
+
+  /* secondary palette (base: #e9e8e8) */
+  --color-secondary-50: #ffffff;
+  --color-secondary-100: #fafafa;
+  --color-secondary-200: #f6f5f5;
+  --color-secondary-300: #f1f1f1;
+  --color-secondary-400: #edecec;
+  --color-secondary-500: #e9e8e8;
+  --color-secondary-600: #aeaeae;
+  --color-secondary-700: #747474;
+  --color-secondary-800: #3a3a3a;
+  --color-secondary-900: #000000;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-cinzel);
+    background-color: var(--color-ivory);
+    color: var(--color-charcoal);
+  }
+  h1 {
+    font-family: var(--font-pinyon);
+  }
+}
+
+/* 3. Everything below is Tailwind’s utilities */
+@import "tailwindcss";

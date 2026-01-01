@@ -1,0 +1,39 @@
+{
+  "weddingDate": "August 16, 2025",
+  "date": "2025-08-16T18:00:00",
+  "startDate": "2025-08-16T18:00:00",
+  "endDate": "2025-08-17T03:00:00",
+  "ceremonyTime": "6:00 PM",
+  "churchName": "St. Maroun's Church",
+  "churchAddress": "Gemmayze, Beirut",
+  "churchMap": "https://maps.app.goo.gl/curWeCJUmR2kwfqq7",
+  "receptionTime": "7:30 PM",
+  "venueName": "Country Lodge",
+  "venueAddress": "Bsalim, Lebanon",
+  "venueMap": "https://maps.app.goo.gl/6HfNHrRv2wG94x2p7",
+  "coupleNames": "Raphael & Christine",
+  "images": {
+    "invitation": {
+      "front": "/imgs/front.jpg",
+      "back": "/imgs/back.jpg",
+      "envelope": "/imgs/envelope.jpg"
+    },
+    "moments": [
+      "/moments/photo1.JPEG",
+      "/moments/photo2.JPEG",
+      "/moments/photo3.JPEG",
+      "/moments/photo4.JPEG",
+      "/moments/photo5.JPEG"
+    ]
+  },
+  "groomMotherName": "Pascale",
+  "groomFatherName": "Fady",
+  "brideMotherName": "Rima",
+  "brideFatherName": "Daw",
+  "brideLastName": "Daw",
+  "groomLastName": "Kanaan",
+  "groomPhoneNumber": "9613412428",
+  "bridePhoneNumber": "96176512968",
+  "spotifyId": "7iAcEvZJNEY6y4HvVtqfpD",
+  "rsvpDeadline": "July 26th, 2025"
+}
