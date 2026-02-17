@@ -23,7 +23,7 @@ export interface NewEventDraft {
   config: import("../types/event").EventConfig;
 }
 
-function safeParse<T>(key: string, raw: string | null): T | null {
+function safeParse<T>(_key: string, raw: string | null): T | null {
   if (raw == null) return null;
   try {
     return JSON.parse(raw) as T;

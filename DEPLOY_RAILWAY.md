@@ -21,11 +21,15 @@ In the service **Settings** (or **Variables**):
   `npm run deploy:build`  
   (Installs deps, builds the frontend into `dist/`, then installs server deps in `server/`.)
 - **Start Command:**  
-  `npm start`  
+  `npm run deploy:build`  
   (Runs `node server/index.js` from repo root; the server serves `dist/` and the API.)
 - **Watch Paths:** leave default so pushes to the repo trigger a new deploy.
 
-### 1.3 Environment variables
+### 1.3 Port
+
+The server listens on **`process.env.PORT`** (default 3001). Railway sets `PORT` for you automatically. If Railway asks which port your app listens on, either **leave it blank** (so it uses the injected `PORT`) or enter **3001**; at runtime the app will use Railway’s `PORT` when it’s set.
+
+### 1.4 Environment variables
 
 In the same service, open **Variables** and add:
 
@@ -40,7 +44,7 @@ In the same service, open **Variables** and add:
 
 Do **not** set `VITE_API_URL`; the app is served from the same origin on Railway.
 
-### 1.4 Persist data (SQLite + uploads)
+### 1.5 Persist data (SQLite + uploads)
 
 The server uses `server/data/` for the SQLite database and uploads. So that data survives redeploys:
 
@@ -50,7 +54,7 @@ The server uses `server/data/` for the SQLite database and uploads. So that data
    (path relative to the app root).
 3. Redeploy once so the DB and uploads use the volume.
 
-### 1.5 Deploy and get the URL
+### 1.6 Deploy and get the URL
 
 1. Trigger a deploy (push to the connected branch or use **Deploy** in Railway).
 2. In the service, open **Settings** → **Networking** (or **Domains**) and add a **Public URL** (e.g. **Generate domain**). You’ll get something like `your-app.up.railway.app`.
