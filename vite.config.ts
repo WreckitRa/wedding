@@ -4,10 +4,13 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: "/raphael-christine/",
+  base: "/",
   plugins: [react(), tailwindcss()],
   server: {
     host: true,
-    allowedHosts: ["0e68-77-235-156-243.ngrok-free.app"],
+    proxy: {
+      "/api": { target: "http://localhost:3001", changeOrigin: true },
+      "/uploads": { target: "http://localhost:3001", changeOrigin: true },
+    },
   },
 });

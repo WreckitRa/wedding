@@ -1,0 +1,1160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DearGuest | Your guestlist runs itself</title>
+  <meta name="description" content="AI-powered invitations, RSVP automation, WhatsApp + email reminders, duplicate-free guestlists, and attendance insights. Stop chasing guests. Start hosting." />
+  <meta property="og:title" content="DearGuest | Your guestlist runs itself" />
+  <meta property="og:description" content="Collect RSVPs, prevent duplicates, automate reminders, and track who opened. Built for weddings, nightlife, and events." />
+  <meta property="og:type" content="website" />
+
+  <style>
+    :root{
+      --bg: #0F172A;           /* midnight */
+      --paper: #F7F5F2;        /* warm ivory */
+      --ink: #0B1220;          /* deep ink */
+      --muted: #5B6472;        /* slate */
+      --accent: #C6A86B;       /* soft gold */
+      --teal: #3FA7A3;         /* optional */
+      --ok: #4F8A6B;
+      --warn: #9AA4B2;
+      --bad: #C26A6A;
+      --card: rgba(255,255,255,.07);
+      --card2: rgba(255,255,255,.10);
+      --border: rgba(255,255,255,.14);
+      --shadow: 0 18px 50px rgba(0,0,0,.35);
+      --radius: 18px;
+      --radius2: 26px;
+      --max: 1180px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+
+    *{ box-sizing: border-box; }
+    html, body { height: 100%; }
+    body{
+      margin: 0;
+      font-family: var(--font);
+      color: var(--paper);
+      background: radial-gradient(1200px 700px at 20% 10%, rgba(198,168,107,.16), transparent 60%),
+                  radial-gradient(1000px 650px at 85% 20%, rgba(63,167,163,.14), transparent 65%),
+                  linear-gradient(180deg, #0B1220 0%, #0F172A 40%, #0B1220 100%);
+      overflow-x: hidden;
+    }
+
+    a{ color: inherit; text-decoration: none; }
+    button{ font-family: inherit; }
+
+    .wrap{ width: min(var(--max), calc(100% - 40px)); margin: 0 auto; }
+
+    /* Nav */
+    .nav{
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+      background: rgba(11,18,32,.60);
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .nav .inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 14px 0;
+      gap: 14px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: .2px;
+    }
+    .mark{
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background:
+        radial-gradient(12px 12px at 30% 30%, rgba(255,255,255,.45), transparent 60%),
+        linear-gradient(135deg, rgba(198,168,107,.95), rgba(63,167,163,.85));
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.18);
+    }
+    .navlinks{
+      display:flex; gap: 18px;
+      color: rgba(247,245,242,.85);
+      font-size: 14px;
+      align-items:center;
+    }
+    .navlinks a{ opacity: .9; }
+    .navlinks a:hover{ opacity: 1; }
+
+    .navcta{ display:flex; gap: 10px; align-items:center; }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--paper);
+      cursor: pointer;
+      transition: transform .12s ease, background .12s ease, border-color .12s ease;
+      font-weight: 650;
+      font-size: 14px;
+      user-select:none;
+    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.20); }
+    .btn:active{ transform: translateY(0px) scale(.99); }
+
+    .btn.primary{
+      background: linear-gradient(135deg, rgba(198,168,107,.95), rgba(198,168,107,.78));
+      color: #0B1220;
+      border-color: rgba(198,168,107,.55);
+      box-shadow: 0 14px 40px rgba(198,168,107,.18);
+    }
+    .btn.primary:hover{ background: linear-gradient(135deg, rgba(198,168,107,1), rgba(198,168,107,.86)); }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: rgba(247,245,242,.90);
+      font-size: 13px;
+      width: fit-content;
+    }
+    .dot{
+      width: 8px; height: 8px; border-radius: 99px;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(198,168,107,.12);
+    }
+
+    /* Hero */
+    .hero{
+      padding: 56px 0 34px;
+    }
+    .heroGrid{
+      display:grid;
+      grid-template-columns: 1.08fr .92fr;
+      gap: 28px;
+      align-items: center;
+    }
+    @media (max-width: 940px){
+      .heroGrid{ grid-template-columns: 1fr; }
+      .navlinks{ display:none; }
+    }
+
+    h1{
+      margin: 16px 0 12px;
+      font-size: clamp(34px, 5vw, 56px);
+      line-height: 1.02;
+      letter-spacing: -1.2px;
+    }
+    .sub{
+      color: rgba(247,245,242,.86);
+      font-size: 16px;
+      line-height: 1.55;
+      max-width: 56ch;
+    }
+    .heroCtas{ display:flex; gap: 12px; align-items:center; margin-top: 18px; flex-wrap: wrap; }
+    .micro{
+      color: rgba(247,245,242,.70);
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    .heroCard{
+      border-radius: var(--radius2);
+      border: 1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position: relative;
+    }
+    .heroCard::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: radial-gradient(600px 220px at 20% 0%, rgba(198,168,107,.25), transparent 60%),
+                  radial-gradient(520px 220px at 85% 20%, rgba(63,167,163,.20), transparent 62%);
+      pointer-events:none;
+    }
+    .heroCardInner{ position:relative; padding: 18px; }
+    .mockTop{
+      display:flex; justify-content:space-between; align-items:center;
+      padding: 14px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(11,18,32,.55);
+      margin-bottom: 12px;
+    }
+    .mockTitle{ display:flex; flex-direction:column; gap: 3px; }
+    .mockTitle strong{ font-size: 14px; }
+    .mockTitle span{ font-size: 12px; color: rgba(247,245,242,.72); }
+    .chip{
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(198,168,107,.40);
+      background: rgba(198,168,107,.12);
+      color: rgba(247,245,242,.92);
+      white-space: nowrap;
+    }
+    .mockGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 520px){
+      .mockGrid{ grid-template-columns: 1fr; }
+    }
+    .kpi{
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(11,18,32,.45);
+      padding: 14px;
+    }
+    .kpi .label{ font-size: 12px; color: rgba(247,245,242,.70); }
+    .kpi .value{ font-size: 20px; font-weight: 750; margin-top: 6px; letter-spacing: -.3px; }
+    .bar{
+      height: 9px;
+      border-radius: 99px;
+      background: rgba(255,255,255,.10);
+      margin-top: 10px;
+      overflow:hidden;
+    }
+    .bar > i{
+      display:block;
+      height: 100%;
+      width: 0%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, rgba(198,168,107,.95), rgba(63,167,163,.85));
+      transition: width 900ms ease;
+    }
+    .mockList{
+      margin-top: 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(11,18,32,.45);
+      padding: 12px;
+    }
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 10px 8px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+    .row:last-child{ border-bottom:none; }
+    .who{ display:flex; flex-direction:column; gap: 2px; }
+    .who b{ font-size: 13px; }
+    .who small{ font-size: 12px; color: rgba(247,245,242,.68); }
+    .status{
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: rgba(247,245,242,.86);
+      white-space: nowrap;
+    }
+    .status.ok{ border-color: rgba(79,138,107,.45); background: rgba(79,138,107,.12); }
+    .status.pending{ border-color: rgba(154,164,178,.40); background: rgba(154,164,178,.10); }
+    .status.no{ border-color: rgba(194,106,106,.45); background: rgba(194,106,106,.10); }
+
+    /* Logos strip */
+    .strip{
+      padding: 18px 0 0;
+      opacity: .95;
+    }
+    .logos{
+      display:flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items:center;
+      color: rgba(247,245,242,.70);
+      font-size: 13px;
+    }
+    .logos .tag{
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.05);
+    }
+
+    /* Sections */
+    section{ padding: 64px 0; }
+    .sectionTitle{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    h2{
+      margin: 0;
+      font-size: clamp(26px, 3.2vw, 40px);
+      line-height: 1.12;
+      letter-spacing: -0.8px;
+    }
+    .lead{
+      margin: 0;
+      color: rgba(247,245,242,.82);
+      max-width: 70ch;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+
+    .cards{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 920px){
+      .cards{ grid-template-columns: 1fr; }
+    }
+    .card{
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      padding: 18px;
+      box-shadow: 0 10px 26px rgba(0,0,0,.18);
+    }
+    .card h3{
+      margin: 10px 0 8px;
+      font-size: 16px;
+      letter-spacing: -0.2px;
+    }
+    .card p{
+      margin: 0;
+      color: rgba(247,245,242,.78);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    .icon{
+      width: 38px; height: 38px; border-radius: 14px;
+      background: rgba(198,168,107,.12);
+      border: 1px solid rgba(198,168,107,.28);
+      display:flex; align-items:center; justify-content:center;
+      color: rgba(247,245,242,.92);
+      font-weight: 800;
+    }
+
+    /* Problem -> Solution */
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      align-items:start;
+    }
+    @media (max-width: 920px){ .twoCol{ grid-template-columns: 1fr; } }
+
+    .panel{
+      border-radius: var(--radius2);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      padding: 18px;
+    }
+    .list{
+      margin: 12px 0 0;
+      padding: 0;
+      list-style:none;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .li{
+      display:flex;
+      gap: 10px;
+      align-items:flex-start;
+      color: rgba(247,245,242,.82);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+    .tick{
+      width: 22px; height: 22px; border-radius: 8px;
+      display:flex; align-items:center; justify-content:center;
+      background: rgba(79,138,107,.14);
+      border: 1px solid rgba(79,138,107,.32);
+      flex: 0 0 auto;
+      margin-top: 1px;
+      font-size: 12px;
+    }
+    .x{
+      background: rgba(194,106,106,.12);
+      border-color: rgba(194,106,106,.32);
+    }
+
+    /* Steps */
+    .steps{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 920px){ .steps{ grid-template-columns: 1fr; } }
+    .step{
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      padding: 18px;
+      position: relative;
+    }
+    .num{
+      position:absolute;
+      top: 14px; right: 14px;
+      width: 34px; height: 34px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      display:flex; align-items:center; justify-content:center;
+      color: rgba(247,245,242,.80);
+      font-weight: 800;
+    }
+    .step h3{ margin: 4px 0 8px; font-size: 16px; }
+    .step p{ margin:0; color: rgba(247,245,242,.78); line-height: 1.55; font-size: 14px; }
+
+    /* Pricing */
+    .pricing{
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+    @media (max-width: 980px){ .pricing{ grid-template-columns: 1fr; } }
+    .priceCard{
+      border-radius: var(--radius2);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      padding: 18px;
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+      position: relative;
+      overflow:hidden;
+    }
+    .priceCard.featured{
+      border-color: rgba(198,168,107,.32);
+      background: linear-gradient(180deg, rgba(198,168,107,.14), rgba(255,255,255,.06));
+      box-shadow: 0 22px 60px rgba(198,168,107,.12);
+    }
+    .badge{
+      position:absolute;
+      top: 14px;
+      right: 14px;
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(198,168,107,.40);
+      background: rgba(198,168,107,.14);
+      color: rgba(247,245,242,.92);
+    }
+    .priceTop strong{ font-size: 16px; }
+    .price{
+      font-size: 36px;
+      font-weight: 850;
+      letter-spacing: -0.8px;
+    }
+    .per{ font-size: 13px; color: rgba(247,245,242,.70); }
+    .feat{
+      list-style:none; margin: 0; padding: 0;
+      display:flex; flex-direction:column; gap: 10px;
+      color: rgba(247,245,242,.82);
+      font-size: 14px;
+    }
+    .feat li{ display:flex; gap: 10px; align-items:flex-start; line-height: 1.45; }
+    .feat .tick{ margin-top: 0; }
+    .spacer{ flex: 1; }
+
+    /* FAQ */
+    .faq{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      align-items:start;
+    }
+    @media (max-width: 920px){ .faq{ grid-template-columns: 1fr; } }
+    details{
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      padding: 14px 16px;
+    }
+    summary{
+      cursor: pointer;
+      font-weight: 720;
+      color: rgba(247,245,242,.92);
+      list-style:none;
+    }
+    summary::-webkit-details-marker{ display:none; }
+    details p{
+      margin: 10px 0 0;
+      color: rgba(247,245,242,.78);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    /* CTA footer */
+    .cta{
+      border-radius: 28px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: radial-gradient(900px 320px at 20% 20%, rgba(198,168,107,.22), transparent 55%),
+                  radial-gradient(900px 320px at 85% 20%, rgba(63,167,163,.18), transparent 55%),
+                  rgba(255,255,255,.06);
+      padding: 22px;
+      box-shadow: var(--shadow);
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 16px;
+      align-items:center;
+    }
+    @media (max-width: 920px){ .cta{ grid-template-columns: 1fr; } }
+    .cta h3{ margin: 0 0 8px; font-size: 22px; letter-spacing: -0.4px; }
+    .cta p{ margin: 0; color: rgba(247,245,242,.82); line-height: 1.6; }
+    .form{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content:flex-end;
+      flex-wrap: wrap;
+    }
+    .input{
+      flex: 1 1 220px;
+      min-width: 220px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(11,18,32,.55);
+      color: var(--paper);
+      outline: none;
+    }
+    .input::placeholder{ color: rgba(247,245,242,.55); }
+
+    footer{
+      padding: 34px 0 38px;
+      color: rgba(247,245,242,.68);
+      font-size: 13px;
+    }
+    .foot{
+      display:flex; gap: 12px; align-items:center; justify-content:space-between; flex-wrap: wrap;
+      border-top: 1px solid rgba(255,255,255,.08);
+      padding-top: 18px;
+    }
+
+    /* Reveal */
+    .reveal{ opacity: 0; transform: translateY(14px); transition: opacity .55s ease, transform .55s ease; }
+    .reveal.on{ opacity: 1; transform: translateY(0px); }
+
+    /* Toast */
+    .toast{
+      position: fixed;
+      bottom: 18px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 999;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(11,18,32,.85);
+      color: rgba(247,245,242,.92);
+      padding: 10px 14px;
+      font-size: 13px;
+      backdrop-filter: blur(10px);
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .toast.on{ opacity: 1; transform: translateX(-50%) translateY(0px); }
+  </style>
+</head>
+
+<body>
+  <div class="nav">
+    <div class="wrap">
+      <div class="inner">
+        <a class="brand" href="#top" aria-label="DearGuest Home">
+          <span class="mark" aria-hidden="true"></span>
+          <span>DearGuest</span>
+        </a>
+
+        <div class="navlinks" aria-label="Primary">
+          <a href="#features">Features</a>
+          <a href="#how">How it works</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#faq">FAQ</a>
+        </div>
+
+        <div class="navcta">
+          <button class="btn" data-scroll="#pricing">See pricing</button>
+          <button class="btn primary" data-open-modal="1">Get early access</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main id="top" class="wrap">
+    <!-- HERO -->
+    <div class="hero">
+      <div class="heroGrid">
+        <div class="reveal">
+          <div class="pill">
+            <span class="dot" aria-hidden="true"></span>
+            <span>AI invitations • WhatsApp + email reminders • Attendance insights</span>
+          </div>
+
+          <h1>Your guestlist runs itself.</h1>
+          <p class="sub">
+            DearGuest automatically collects RSVPs, prevents duplicates, follows up with guests, and shows you exactly who opened, who responded, and who is still pending.
+            Built for weddings, nightclubs, and events where certainty matters.
+          </p>
+
+          <div class="heroCtas">
+            <button class="btn primary" data-open-modal="1">Get early access</button>
+            <button class="btn" data-scroll="#features">See what it does</button>
+            <button class="btn" id="demoBtn">Preview a sample invite</button>
+          </div>
+
+          <div class="micro">
+            No app required for guests. Works on mobile. Organizers stay in control without chasing anyone.
+          </div>
+
+          <div class="strip">
+            <div class="logos" aria-label="Use cases">
+              <span class="tag">Weddings</span>
+              <span class="tag">Nightlife</span>
+              <span class="tag">Corporate</span>
+              <span class="tag">Private events</span>
+              <span class="tag">Birthdays</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="heroCard reveal" aria-label="Product preview">
+          <div class="heroCardInner">
+            <div class="mockTop">
+              <div class="mockTitle">
+                <strong>Sarah & Tony</strong>
+                <span>Saturday 8:30 PM • Beirut</span>
+              </div>
+              <span class="chip">Response rate: <b id="rateText">0%</b></span>
+            </div>
+
+            <div class="mockGrid">
+              <div class="kpi">
+                <div class="label">Opened</div>
+                <div class="value"><span id="openedNum">0</span> / 150</div>
+                <div class="bar"><i id="openedBar"></i></div>
+              </div>
+
+              <div class="kpi">
+                <div class="label">Confirmed</div>
+                <div class="value"><span id="yesNum">0</span></div>
+                <div class="bar"><i id="yesBar"></i></div>
+              </div>
+
+              <div class="kpi">
+                <div class="label">Pending</div>
+                <div class="value"><span id="pendingNum">0</span></div>
+                <div class="bar"><i id="pendingBar"></i></div>
+              </div>
+
+              <div class="kpi">
+                <div class="label">Duplicates prevented</div>
+                <div class="value"><span id="dupNum">0</span></div>
+                <div class="bar"><i id="dupBar"></i></div>
+              </div>
+            </div>
+
+            <div class="mockList" aria-label="Guest list preview">
+              <div class="row">
+                <div class="who"><b>Maya H.</b><small>Opened • No response yet</small></div>
+                <span class="status pending">Pending</span>
+              </div>
+              <div class="row">
+                <div class="who"><b>Karim A.</b><small>Confirmed +1</small></div>
+                <span class="status ok">Confirmed</span>
+              </div>
+              <div class="row">
+                <div class="who"><b>Nour S.</b><small>Invite not opened</small></div>
+                <span class="status">Not opened</span>
+              </div>
+              <div class="row">
+                <div class="who"><b>Rami K.</b><small>Declined</small></div>
+                <span class="status no">Declined</span>
+              </div>
+            </div>
+
+            <div class="micro" style="margin-top:12px;">
+              Smart reminders trigger automatically based on guest behavior, so you never need to follow up manually.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FEATURES -->
+    <section id="features">
+      <div class="sectionTitle reveal">
+        <h2>Designed to remove the stress.</h2>
+        <p class="lead">
+          The organizer should not chase guests. DearGuest does the follow up, keeps the guestlist clean, and gives you clarity at all times.
+        </p>
+      </div>
+
+      <div class="cards">
+        <div class="card reveal">
+          <div class="icon">AI</div>
+          <h3>AI invitation that actually looks good</h3>
+          <p>Create a clean invitation page in minutes. Smart copy, elegant layout, and the right details without overthinking.</p>
+        </div>
+
+        <div class="card reveal">
+          <div class="icon">RS</div>
+          <h3>Duplicate free RSVPs</h3>
+          <p>One guest, one record. Prevent duplicates, track +1 rules, and keep your headcount accurate.</p>
+        </div>
+
+        <div class="card reveal">
+          <div class="icon">WA</div>
+          <h3>WhatsApp and email reminders</h3>
+          <p>Not opened? Opened but no response? Confirmed? DearGuest sends the right message at the right time automatically.</p>
+        </div>
+
+        <div class="card reveal">
+          <div class="icon">IN</div>
+          <h3>Insights that matter</h3>
+          <p>See who opened, who did not, who is pending, and your live response rate. No guessing.</p>
+        </div>
+
+        <div class="card reveal">
+          <div class="icon">DO</div>
+          <h3>Door friendly guestlists</h3>
+          <p>Simple entrance list for organizers and venues. Fast search. Clean categories like VIP, family, tables, and more.</p>
+        </div>
+
+        <div class="card reveal">
+          <div class="icon">CL</div>
+          <h3>Clarity on one screen</h3>
+          <p>Stop scrolling chats. Stop updating spreadsheets. Everything lives in one calm, reliable dashboard.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROBLEM / SOLUTION -->
+    <section>
+      <div class="twoCol">
+        <div class="panel reveal">
+          <h2 style="margin:0 0 10px;">The usual chaos</h2>
+          <p class="lead" style="font-size:14px; margin:0;">What organizers deal with every time.</p>
+          <ul class="list">
+            <li class="li"><span class="tick x">×</span><span>Guests say “maybe” then disappear.</span></li>
+            <li class="li"><span class="tick x">×</span><span>Duplicate names across WhatsApp groups and spreadsheets.</span></li>
+            <li class="li"><span class="tick x">×</span><span>Manual follow ups that feel awkward and exhausting.</span></li>
+            <li class="li"><span class="tick x">×</span><span>No clue who opened the invite and who ignored it.</span></li>
+            <li class="li"><span class="tick x">×</span><span>Wrong headcount, wasted budget, entrance confusion.</span></li>
+          </ul>
+        </div>
+
+        <div class="panel reveal">
+          <h2 style="margin:0 0 10px;">How DearGuest fixes it</h2>
+          <p class="lead" style="font-size:14px; margin:0;">One system that runs the guestlist for you.</p>
+          <ul class="list">
+            <li class="li"><span class="tick">✓</span><span>One link for guests. Fast RSVP. No app required.</span></li>
+            <li class="li"><span class="tick">✓</span><span>Duplicates prevented automatically. Clean guest records.</span></li>
+            <li class="li"><span class="tick">✓</span><span>Behavior based reminders via WhatsApp and email.</span></li>
+            <li class="li"><span class="tick">✓</span><span>Live insights: opened, pending, confirmed, declined.</span></li>
+            <li class="li"><span class="tick">✓</span><span>Door ready list for venues and teams, with categories.</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="how">
+      <div class="sectionTitle reveal">
+        <h2>Set it up once. Let it run.</h2>
+        <p class="lead">Three steps. No learning curve. No chaos.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step reveal">
+          <div class="num">1</div>
+          <h3>Create your event</h3>
+          <p>Add the essentials. DearGuest helps you write a clean invitation and produces a shareable link instantly.</p>
+        </div>
+
+        <div class="step reveal">
+          <div class="num">2</div>
+          <h3>Share anywhere</h3>
+          <p>Send on WhatsApp, email, Instagram bio, or group chats. Guests RSVP in seconds with +1 rules if you want.</p>
+        </div>
+
+        <div class="step reveal">
+          <div class="num">3</div>
+          <h3>Watch the list fill itself</h3>
+          <p>DearGuest nudges guests automatically and updates your dashboard with insights, so you stay confident.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <section id="pricing">
+      <div class="sectionTitle reveal">
+        <h2>Pricing that makes sense.</h2>
+        <p class="lead">Start simple. Upgrade when you need more automation and insights.</p>
+      </div>
+
+      <div class="pricing">
+        <div class="priceCard reveal">
+          <div class="priceTop">
+            <strong>Starter</strong>
+            <div class="micro" style="margin:6px 0 0;">For small gatherings</div>
+          </div>
+          <div>
+            <div class="price">$19</div>
+            <div class="per">per event</div>
+          </div>
+
+          <ul class="feat">
+            <li><span class="tick">✓</span><span>Invitation link + RSVP</span></li>
+            <li><span class="tick">✓</span><span>Duplicate prevention</span></li>
+            <li><span class="tick">✓</span><span>Guestlist export</span></li>
+            <li><span class="tick">✓</span><span>Basic reminders (email)</span></li>
+          </ul>
+
+          <div class="spacer"></div>
+          <button class="btn" data-open-modal="1" data-plan="Starter">Choose Starter</button>
+        </div>
+
+        <div class="priceCard featured reveal">
+          <div class="badge">Most popular</div>
+          <div class="priceTop">
+            <strong>Pro</strong>
+            <div class="micro" style="margin:6px 0 0;">For weddings and serious events</div>
+          </div>
+          <div>
+            <div class="price">$59</div>
+            <div class="per">per event</div>
+          </div>
+
+          <ul class="feat">
+            <li><span class="tick">✓</span><span>Everything in Starter</span></li>
+            <li><span class="tick">✓</span><span>WhatsApp reminders</span></li>
+            <li><span class="tick">✓</span><span>Opened and pending insights</span></li>
+            <li><span class="tick">✓</span><span>VIP tags and categories</span></li>
+            <li><span class="tick">✓</span><span>Door friendly list view</span></li>
+          </ul>
+
+          <div class="spacer"></div>
+          <button class="btn primary" data-open-modal="1" data-plan="Pro">Choose Pro</button>
+        </div>
+
+        <div class="priceCard reveal">
+          <div class="priceTop">
+            <strong>Organizer</strong>
+            <div class="micro" style="margin:6px 0 0;">For planners, promoters, and teams</div>
+          </div>
+          <div>
+            <div class="price">$149</div>
+            <div class="per">per month</div>
+          </div>
+
+          <ul class="feat">
+            <li><span class="tick">✓</span><span>Unlimited events</span></li>
+            <li><span class="tick">✓</span><span>Team access</span></li>
+            <li><span class="tick">✓</span><span>Advanced reminder rules</span></li>
+            <li><span class="tick">✓</span><span>Venue ready exports</span></li>
+            <li><span class="tick">✓</span><span>Priority support</span></li>
+          </ul>
+
+          <div class="spacer"></div>
+          <button class="btn" data-open-modal="1" data-plan="Organizer">Talk to us</button>
+        </div>
+      </div>
+
+      <p class="micro reveal" style="margin-top:12px;">
+        Replace prices and currency easily in the HTML. Add annual discounts later once traction is proven.
+      </p>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <div class="sectionTitle reveal">
+        <h2>FAQ</h2>
+        <p class="lead">Clear answers. No confusion.</p>
+      </div>
+
+      <div class="faq">
+        <details class="reveal">
+          <summary>Do guests need an app?</summary>
+          <p>No. Guests open a link, RSVP in seconds, and receive updates via WhatsApp or email.</p>
+        </details>
+
+        <details class="reveal">
+          <summary>How do reminders work?</summary>
+          <p>Reminders are behavior based. If someone did not open, they get a gentle nudge. If they opened but did not respond, they get a follow up. Confirmed guests get a day-of reminder.</p>
+        </details>
+
+        <details class="reveal">
+          <summary>Can I control +1 and guest categories?</summary>
+          <p>Yes. You can allow +1, restrict it, and tag guests as VIP, family, tables, or any category you want.</p>
+        </details>
+
+        <details class="reveal">
+          <summary>Is this for weddings only?</summary>
+          <p>No. DearGuest works for weddings, birthdays, corporate events, private parties, and nightlife guestlists.</p>
+        </details>
+
+        <details class="reveal">
+          <summary>Can I export the guestlist for the door?</summary>
+          <p>Yes. Export or use a door view with fast search and clear statuses.</p>
+        </details>
+
+        <details class="reveal">
+          <summary>What should I build first as an MVP?</summary>
+          <p>Invitation link, RSVP collection, duplicate prevention, and a simple reminders engine. Insights can start with opened and pending.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section>
+      <div class="cta reveal">
+        <div>
+          <h3>Stop chasing guests. Start hosting.</h3>
+          <p>Join the early access list and get a launch offer for your first events. We will also help you set up your first invitation in minutes.</p>
+        </div>
+
+        <form class="form" id="leadForm">
+          <input class="input" type="text" name="name" placeholder="Your name" autocomplete="name" required />
+          <input class="input" type="email" name="email" placeholder="Email address" autocomplete="email" required />
+          <button class="btn primary" type="submit">Request access</button>
+        </form>
+      </div>
+    </section>
+
+    <footer>
+      <div class="foot">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span class="mark" aria-hidden="true" style="width:28px;height:28px;border-radius:10px;"></span>
+          <span>© <span id="year"></span> DearGuest</span>
+        </div>
+        <div style="display:flex; gap:14px; flex-wrap:wrap;">
+          <a href="#pricing">Pricing</a>
+          <a href="#faq">FAQ</a>
+          <a href="#top" aria-label="Back to top">Back to top</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Simple modal (no dependencies) -->
+  <div id="modal" style="display:none;">
+    <div id="modalBackdrop" style="
+      position:fixed; inset:0; background:rgba(0,0,0,.55);
+      backdrop-filter: blur(10px); z-index: 2000;
+      display:flex; align-items:center; justify-content:center; padding: 18px;">
+      <div style="
+        width:min(560px, 100%);
+        border-radius: 22px;
+        border: 1px solid rgba(255,255,255,.14);
+        background: rgba(11,18,32,.92);
+        box-shadow: 0 30px 90px rgba(0,0,0,.55);
+        overflow:hidden;">
+        <div style="padding: 16px 16px; display:flex; align-items:center; justify-content:space-between; gap: 12px; border-bottom: 1px solid rgba(255,255,255,.08);">
+          <div style="display:flex; align-items:center; gap: 10px;">
+            <span class="mark" aria-hidden="true" style="width:30px;height:30px;border-radius:11px;"></span>
+            <div>
+              <div style="font-weight:800; letter-spacing:-.2px;">Get early access</div>
+              <div style="font-size:12px; color: rgba(247,245,242,.70); margin-top:2px;">Tell us what you host. We will prioritize you.</div>
+            </div>
+          </div>
+          <button class="btn" id="closeModal" type="button">Close</button>
+        </div>
+
+        <div style="padding: 16px;">
+          <div class="pill" style="margin-bottom: 12px;">
+            <span class="dot" aria-hidden="true"></span>
+            <span>We keep it simple. You get a clean setup and a working invite fast.</span>
+          </div>
+
+          <form id="modalForm" style="display:grid; gap: 10px;">
+            <input class="input" type="text" name="name" placeholder="Name" autocomplete="name" required />
+            <input class="input" type="email" name="email" placeholder="Email" autocomplete="email" required />
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <select class="input" name="type" required>
+                <option value="" disabled selected>Event type</option>
+                <option>Wedding</option>
+                <option>Nightlife</option>
+                <option>Corporate</option>
+                <option>Private event</option>
+                <option>Birthday</option>
+              </select>
+
+              <select class="input" name="plan" id="planSelect">
+                <option value="" selected>Preferred plan (optional)</option>
+                <option>Starter</option>
+                <option>Pro</option>
+                <option>Organizer</option>
+              </select>
+            </div>
+
+            <input class="input" type="text" name="city" placeholder="City (optional)" autocomplete="address-level2" />
+            <button class="btn primary" type="submit">Request access</button>
+
+            <div style="font-size:12px; color: rgba(247,245,242,.60); line-height:1.45;">
+              This demo form stores nothing. Connect it to your backend later.
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Basic helpers
+    const $ = (q, el=document) => el.querySelector(q);
+    const $$ = (q, el=document) => Array.from(el.querySelectorAll(q));
+
+    // Smooth scroll
+    $$("[data-scroll]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const target = btn.getAttribute("data-scroll");
+        const el = $(target);
+        if (!el) return;
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+
+    // Reveal on scroll
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add("on");
+      });
+    }, { threshold: 0.12 });
+
+    $$(".reveal").forEach(el => io.observe(el));
+
+    // KPI animation
+    const animateKpis = () => {
+      const opened = 118;    // example numbers
+      const yes = 92;
+      const pending = 31;
+      const dups = 7;
+
+      $("#openedNum").textContent = opened;
+      $("#yesNum").textContent = yes;
+      $("#pendingNum").textContent = pending;
+      $("#dupNum").textContent = dups;
+
+      const rate = Math.round((yes / 150) * 100);
+      $("#rateText").textContent = rate + "%";
+
+      // bars
+      requestAnimationFrame(() => {
+        $("#openedBar").style.width = Math.round((opened / 150) * 100) + "%";
+        $("#yesBar").style.width = Math.round((yes / 150) * 100) + "%";
+        $("#pendingBar").style.width = Math.round((pending / 150) * 100) + "%";
+        $("#dupBar").style.width = Math.min(100, dups * 10) + "%";
+      });
+    };
+
+    // Trigger KPI animation once hero card is visible
+    const kpiObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          animateKpis();
+          kpiObs.disconnect();
+        }
+      });
+    }, { threshold: 0.25 });
+    kpiObs.observe($(".heroCard"));
+
+    // Toast
+    const toast = $("#toast");
+    let toastTimer = null;
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("on");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("on"), 2200);
+    }
+
+    // Modal
+    const modalRoot = $("#modal");
+    const backdrop = $("#modalBackdrop");
+    const closeModal = $("#closeModal");
+    const planSelect = $("#planSelect");
+
+    function openModal(plan){
+      modalRoot.style.display = "block";
+      document.body.style.overflow = "hidden";
+      if (plan) planSelect.value = plan;
+    }
+    function hideModal(){
+      modalRoot.style.display = "none";
+      document.body.style.overflow = "";
+    }
+
+    $$("[data-open-modal]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        openModal(btn.getAttribute("data-plan") || "");
+      });
+    });
+
+    closeModal.addEventListener("click", hideModal);
+    backdrop.addEventListener("click", (e) => {
+      if (e.target === backdrop) hideModal();
+    });
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && modalRoot.style.display === "block") hideModal();
+    });
+
+    // Demo button
+    $("#demoBtn").addEventListener("click", () => {
+      showToast("Sample invite preview: connect this to your real /demo page later.");
+    });
+
+    // Forms (demo only)
+    $("#leadForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const data = new FormData(e.target);
+      showToast("Thanks, " + (data.get("name") || "there") + ". We will reach out soon.");
+      e.target.reset();
+      openModal("Pro");
+    });
+
+    $("#modalForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const data = new FormData(e.target);
+      const plan = data.get("plan") || "Pro";
+      showToast("Request received. Plan: " + plan + ".");
+      e.target.reset();
+      hideModal();
+    });
+
+    // Year
+    $("#year").textContent = new Date().getFullYear();
+
+    // Optional: set active nav highlight (simple)
+    const sections = ["#features", "#how", "#pricing", "#faq"].map(id => $(id));
+    const navLinks = $$(".navlinks a");
+    const navObs = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const id = "#" + entry.target.id;
+        navLinks.forEach(a => {
+          a.style.opacity = (a.getAttribute("href") === id) ? "1" : ".82";
+        });
+      });
+    }, { threshold: 0.35 });
+    sections.forEach(s => s && navObs.observe(s));
+  </script>
+</body>
+</html>

@@ -7,13 +7,16 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy:build": "npm run build && cd server && npm install --production",
+    "start": "node server/index.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.10",
     "lucide-react": "^0.523.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-router-dom": "^7.13.0",
     "tailwindcss": "^4.1.10",
     "xlsx": "^0.18.5"
   },

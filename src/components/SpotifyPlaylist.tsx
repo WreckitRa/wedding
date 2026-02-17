@@ -1,10 +1,14 @@
 import React from "react";
-import wedding from "../data/wedding.json";
+import type { EventConfig } from "../types/event";
 
-const SpotifyPlaylist: React.FC = () => {
-  // Default playlist ID - you can make this dynamic per guest if needed
+interface SpotifyPlaylistProps {
+  config: EventConfig;
+}
 
-  const embedUrl = `https://open.spotify.com/embed/playlist/${wedding.spotifyId}?utm_source=generator&theme=0`;
+const SpotifyPlaylist: React.FC<SpotifyPlaylistProps> = ({ config }) => {
+  const spotifyId = config.spotifyId;
+  if (!spotifyId) return null;
+  const embedUrl = `https://open.spotify.com/embed/playlist/${spotifyId}?utm_source=generator&theme=0`;
 
   return (
     <section className="py-20 bg-secondary-100">
@@ -38,7 +42,7 @@ const SpotifyPlaylist: React.FC = () => {
               We can’t wait to dance with you! 💃🕺
             </p>
             <a
-              href={`https://open.spotify.com/playlist/${wedding.spotifyId}`}
+              href={`https://open.spotify.com/playlist/${spotifyId}`}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors font-medium"

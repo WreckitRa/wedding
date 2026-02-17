@@ -1,29 +1,39 @@
 import React, { useState } from "react";
-import wedding from "../data/wedding.json";
+import type { EventConfig } from "../types/event";
 
-const images = [
-  {
-    src: `${import.meta.env.BASE_URL}${wedding.images.invitation.envelope}`,
-    label: "Envelope",
-  },
-  {
-    src: `${import.meta.env.BASE_URL}${wedding.images.invitation.front}`,
-    label: "Front",
-  },
-  {
-    src: `${import.meta.env.BASE_URL}${wedding.images.invitation.back}`,
-    label: "Back",
-  },
-];
+function toImageSrc(path: string): string {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  if (path.startsWith("/")) return path;
+  const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") || "";
+  return base ? `${base}/${path.replace(/^\//, "")}` : `/${path.replace(/^\//, "")}`;
+}
+
+function getImages(config: EventConfig) {
+  const inv = config.images?.invitation;
+  if (!inv) return [];
+  return [
+    { src: toImageSrc(inv.envelope || ""), label: "Envelope" },
+    { src: toImageSrc(inv.front || ""), label: "Front" },
+    { src: toImageSrc(inv.back || ""), label: "Back" },
+  ].filter((i) => i.src);
+}
 
 type Stage = 0 | 1 | 2;
 
 type Animation = null | "slide-left" | "slide-right" | "flip";
 
-const CardViewer: React.FC = () => {
+interface CardViewerProps {
+  config: EventConfig;
+}
+
+const CardViewer: React.FC<CardViewerProps> = ({ config }) => {
+  const images = getImages(config);
   const [stage, setStage] = useState<Stage>(0);
   const [animating, setAnimating] = useState<Animation>(null);
   const [nextStage, setNextStage] = useState<Stage>(0);
+
+  if (images.length === 0) return null;
 
   const handleCardTap = () => {
     if (animating) return;

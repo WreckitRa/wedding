@@ -1,15 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react";
-import type { Guest } from "../hooks/useGuest";
-import wedding from "../data/wedding.json";
-import {
-  submitRSVPToSheets,
-  downloadRSVPAsCSV,
-  checkRSVPStatus,
-} from "../utils/sheets";
+import type { Guest } from "../types/event";
+import type { EventConfig } from "../types/event";
+import { submitRSVP, checkRSVPStatus } from "../api/client";
 import { Loader2 } from "lucide-react";
 
 interface RSVPFlowProps {
+  eventSlug: string;
+  config: EventConfig;
   guest: Guest;
+  isPublic?: boolean;
 }
 
 interface RSVPData {
@@ -20,7 +19,7 @@ interface RSVPData {
   message: string;
 }
 
-const RSVPFlow: React.FC<RSVPFlowProps> = ({ guest }) => {
+const RSVPFlow: React.FC<RSVPFlowProps> = ({ eventSlug, config, guest, isPublic }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [rsvpData, setRsvpData] = useState<RSVPData>({
     attendance: "",
@@ -42,22 +41,22 @@ const RSVPFlow: React.FC<RSVPFlowProps> = ({ guest }) => {
   const [atRSVPBottom, setAtRSVPBottom] = useState(false);
   const rsvpSectionRef = React.useRef<HTMLDivElement>(null);
 
-  // Get guest ID from URL
-  const guestId = new URLSearchParams(window.location.search).get("id");
+  const guestId = guest.id || null;
 
-  // Check if guest has already RSVP'd on component mount
   useEffect(() => {
-    if (guestId) {
-      checkRSVPStatus(guestId).then((hasRSVPd) => {
-        setHasAlreadyRSVPd(hasRSVPd);
-      });
-    } else {
-      setHasAlreadyRSVPd(false); // No guest ID, so they can't have RSVP'd
+    if (isPublic || !guestId) {
+      setHasAlreadyRSVPd(false);
+      return;
     }
-  }, [guestId]);
+    checkRSVPStatus(eventSlug, guestId).then(setHasAlreadyRSVPd);
+  }, [eventSlug, guestId, isPublic]);
 
   const getImageUrl = (path: string) => {
-    return `${import.meta.env.BASE_URL}${path}`;
+    if (!path) return "";
+    if (path.startsWith("http://") || path.startsWith("https://")) return path;
+    if (path.startsWith("/")) return path;
+    const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "") || "";
+    return base ? `${base}/${path.replace(/^\//, "")}` : `/${path.replace(/^\//, "")}`;
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -105,31 +104,25 @@ const RSVPFlow: React.FC<RSVPFlowProps> = ({ guest }) => {
   };
 
   const handleSubmit = async () => {
-    if (isSubmitting) return; // Prevent multiple submissions
+    if (isSubmitting) return;
     setIsSubmitting(true);
-
-    // Prepare data for submission
-    const submissionData = {
-      guestId: guestId || "unknown",
-      guestName: guest.name,
-      partnerName: guest.partnerName || undefined,
-      attendance: rsvpData.attendance as "yes" | "no",
-      extraGuests: rsvpData.extraGuests,
-      favoriteSongs: rsvpData.favoriteSongs,
-      reaction: rsvpData.reaction,
-      message: rsvpData.message,
-      submissionTime: new Date().toISOString(),
-    };
-
-    // Try to submit to Google Sheets
-    const sheetsSuccess = await submitRSVPToSheets(submissionData);
-
-    if (!sheetsSuccess) {
-      // Fallback: Download as CSV
-      downloadRSVPAsCSV(submissionData);
+    try {
+      await submitRSVP(eventSlug, {
+        guestId: guestId || undefined,
+        guestName: guest.name,
+        partnerName: guest.partnerName || undefined,
+        attendance: rsvpData.attendance as "yes" | "no",
+        extraGuests: rsvpData.extraGuests,
+        favoriteSongs: rsvpData.favoriteSongs,
+        reaction: rsvpData.reaction,
+        message: rsvpData.message,
+      });
+      setIsSubmitted(true);
+    } catch {
+      // could show toast
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setIsSubmitted(true);
   };
 
   // Scroll to center the card when thank you message appears
@@ -362,7 +355,7 @@ const RSVPFlow: React.FC<RSVPFlowProps> = ({ guest }) => {
       <div className="space-y-6">
         <div className="text-center mb-6">
           <h3 className="text-2xl text-black mb-2">
-            A little note from {wedding.coupleNames} 💌
+            A little note from {config.coupleNames} 💌
           </h3>
           <p className="text-primary-700 italic">
             "We can't wait to dance, laugh, and celebrate with you, thanks for
@@ -371,12 +364,13 @@ const RSVPFlow: React.FC<RSVPFlowProps> = ({ guest }) => {
         </div>
 
         {/* Photo Gallery */}
+        {config.images?.moments && config.images.moments.length > 0 && (
         <div className="mb-6">
           <h4 className="text-lg font-medium text-black mb-3">
             Moments we adore 💫
           </h4>
           <div className="flex gap-4 overflow-x-auto pb-4">
-            {wedding.images.moments.map((photo, index) => (
+            {config.images.moments.map((photo, index) => (
               <img
                 key={index}
                 src={getImageUrl(photo)}
@@ -386,6 +380,7 @@ const RSVPFlow: React.FC<RSVPFlowProps> = ({ guest }) => {
             ))}
           </div>
         </div>
+        )}
 
         {/* Reaction Bar */}
         <div className="mb-6 relative">
@@ -484,12 +479,14 @@ const RSVPFlow: React.FC<RSVPFlowProps> = ({ guest }) => {
             <>
               <StepIndicator />
 
-              <div className="text-center bg-primary-50 p-4 rounded-lg mb-8 border border-primary-200">
-                <p className="font-medium text-primary-700">
-                  Kindly RSVP by {wedding.rsvpDeadline} so we can get a
-                  headcount!
-                </p>
-              </div>
+              {config.rsvpDeadline && (
+                <div className="text-center bg-primary-50 p-4 rounded-lg mb-8 border border-primary-200">
+                  <p className="font-medium text-primary-700">
+                    Kindly RSVP by {config.rsvpDeadline} so we can get a
+                    headcount!
+                  </p>
+                </div>
+              )}
 
               <div className="min-h-[400px]">
                 {currentStep === 1 && <Step1 />}
@@ -566,7 +563,7 @@ const RSVPFlow: React.FC<RSVPFlowProps> = ({ guest }) => {
                   </p>
                   <p className="text-black font-medium">
                     We can't wait to hug, laugh, and party with you on{" "}
-                    {wedding.weddingDate}! 🥂
+                    {config.weddingDate}! 🥂
                   </p>
                 </>
               )}

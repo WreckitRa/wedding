@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond&family=Pinyon+Script&family=Cinzel:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond&family=Pinyon+Script&family=Cinzel:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap");
 
 /* src/index.css */
 
@@ -42,6 +42,16 @@
   h1 {
     font-family: var(--font-pinyon);
   }
+}
+
+/* Admin portal: clean sans-serif for dashboards */
+.admin-portal {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+.admin-portal h1,
+.admin-portal h2,
+.admin-portal h3 {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
 /* 3. Everything below is Tailwind’s utilities */

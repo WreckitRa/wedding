@@ -1,7 +1,12 @@
 import { useState, useEffect } from "react";
-import { getWeddingDate } from "../utils/urlParams";
+import { getEventDate } from "../utils/calendar";
+import type { EventConfig } from "../types/event";
 
-const FloatingCountdown = () => {
+interface FloatingCountdownProps {
+  config: EventConfig;
+}
+
+const FloatingCountdown = ({ config }: FloatingCountdownProps) => {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -11,7 +16,7 @@ const FloatingCountdown = () => {
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      const wedding = getWeddingDate();
+      const wedding = getEventDate(config);
       const now = new Date();
       const difference = wedding.getTime() - now.getTime();
 

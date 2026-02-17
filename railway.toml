@@ -1,0 +1,6 @@
+# Railway deploy config: one service runs frontend (dist/) + Node API
+[build]
+buildCommand = "npm run deploy:build"
+
+[deploy]
+startCommand = "npm start"
