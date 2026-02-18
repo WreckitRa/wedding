@@ -108,29 +108,33 @@ export default function PlaceSearchInput({
     const service = new PlacesService(document.createElement("div"));
     const listener = () => {
       const place = autocomplete.getPlace();
-      if (!place?.place_id) return;
+      const placeId = place?.place_id;
+      if (!placeId) return;
       // Fetch full details so we get name, address, and geometry for the share-style map link
+      const request = {
+        placeId,
+        fields: ["name", "formatted_address", "geometry"],
+      } as { placeId: string };
       service.getDetails(
-        { placeId: place.place_id, fields: ["name", "formatted_address", "geometry"] },
+        request,
         (
           result: {
             name?: string;
             formatted_address?: string;
             geometry?: { location?: { lat: () => number; lng: () => number } };
-          } | null,
-          status: string
+          } | null
         ) => {
           const name = result?.name?.trim() ?? place.name?.trim() ?? "";
           const address = result?.formatted_address?.trim() ?? place.formatted_address?.trim() ?? "";
           if (onPlaceSelect) onPlaceSelect(name, address);
 
           const loc = result?.geometry?.location;
-          const lat = typeof loc?.lat === "function" ? loc.lat() : (loc as { lat?: number })?.lat;
-          const lng = typeof loc?.lng === "function" ? loc.lng() : (loc as { lng?: number })?.lng;
+          const lat = loc && typeof loc.lat === "function" ? loc.lat() : undefined;
+          const lng = loc && typeof loc.lng === "function" ? loc.lng() : undefined;
           if (typeof lat === "number" && typeof lng === "number" && name) {
             onChange(buildSharePlaceUrl(name, lat, lng));
           } else {
-            onChange(placeIdToSearchUrl(place.place_id));
+            onChange(placeIdToSearchUrl(placeId));
           }
         }
       );
