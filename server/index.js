@@ -1,8 +1,14 @@
-import "dotenv/config";
-import express from "express";
-import cors from "cors";
+import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+
+const __dirnameServer = path.dirname(fileURLToPath(import.meta.url));
+// Load .env from server/ if present; never override existing env (e.g. Railway's SQLITE_PATH)
+dotenv.config({ path: path.join(__dirnameServer, ".env"), override: false });
+dotenv.config({ path: path.join(__dirnameServer, "..", ".env"), override: false });
+
+import express from "express";
+import cors from "cors";
 import db from "./db/index.js";
 import { createAuthRouter } from "./routes/auth.js";
 import { createEventsRouter } from "./routes/events.js";

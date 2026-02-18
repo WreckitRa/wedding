@@ -26,7 +26,8 @@ After the first deploy with the volume, you’ll need to seed or recreate your a
 On deploy, you should see in the logs:
 
 ```text
+[DB] SQLITE_PATH from env: set
 [DB] Using database at: /data/wedding.db
 ```
 
-If you see a path inside the project (e.g. `.../server/data/wedding.db`) and you’re on Railway, the DB is not on a volume and will reset on each deploy. Set `SQLITE_PATH` as above.
+**If you see `SQLITE_PATH from env: NOT set`** even though you set it in Railway: (1) Add the variable on the **service** that runs the app (Variables for that service). (2) Name exactly `SQLITE_PATH`. (3) **Redeploy** after adding it. — If you see a path inside the project (e.g. `.../server/data/wedding.db`) and you’re on Railway, the DB is not on a volume and will reset on each deploy. Set `SQLITE_PATH` as above.
