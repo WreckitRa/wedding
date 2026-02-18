@@ -6,6 +6,17 @@ import path from "path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, "..", "data");
 const dbPath = process.env.SQLITE_PATH || path.join(dataDir, "wedding.db");
+
+// On Railway (and similar platforms) the app filesystem is ephemeral. Without SQLITE_PATH
+// pointing to a persistent volume, the DB is recreated on every deploy.
+if (process.env.RAILWAY_ENVIRONMENT && !process.env.SQLITE_PATH) {
+  console.warn(
+    "[DB] SQLITE_PATH is not set. Database will be stored in the container and will RESET on each deploy. " +
+    "Add a Volume in Railway, mount it (e.g. at /data), and set SQLITE_PATH=/data/wedding.db"
+  );
+}
+console.log("[DB] Using database at:", dbPath);
+
 // Ensure the directory for the DB file exists (local data dir or e.g. Railway volume path)
 const dbDir = path.dirname(dbPath);
 if (!existsSync(dbDir)) mkdirSync(dbDir, { recursive: true });
