@@ -4,8 +4,14 @@ import { MapPin } from "lucide-react";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
 
-/** Build a shareable Google Maps URL from a place_id (works on desktop and mobile) */
-function placeIdToUrl(placeId: string): string {
+/** Build the same URL format Google Maps uses when you share a place: place name + coordinates */
+function buildSharePlaceUrl(name: string, lat: number, lng: number): string {
+  const encodedName = encodeURIComponent(name.trim() || "Place");
+  return `https://www.google.com/maps/place/${encodedName}/@${lat},${lng},17z`;
+}
+
+/** Fallback when we have place_id but no geometry (e.g. getDetails failed) */
+function placeIdToSearchUrl(placeId: string): string {
   return `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(placeId)}`;
 }
 
@@ -102,29 +108,32 @@ export default function PlaceSearchInput({
     const service = new PlacesService(document.createElement("div"));
     const listener = () => {
       const place = autocomplete.getPlace();
-      console.log("[PlaceSearchInput] place_changed, getPlace() =", place);
-      if (!place?.place_id) {
-        console.log("[PlaceSearchInput] no place_id, skipping");
-        return;
-      }
-      const url = placeIdToUrl(place.place_id);
-      console.log("[PlaceSearchInput] calling onChange(url) with", url);
-      onChange(url);
-      // getPlace() often has empty name for addresses; fetch full details for name + address
-      service.getDetails({ placeId: place.place_id }, (result, status) => {
-        console.log("[PlaceSearchInput] getDetails callback status =", status, "result =", result);
-        if (status === "OK" && result && onPlaceSelect) {
-          const name = result.name?.trim() ?? place.name?.trim() ?? "";
-          const address = result.formatted_address?.trim() ?? place.formatted_address?.trim() ?? "";
-          console.log("[PlaceSearchInput] onPlaceSelect(name, address) =", name, address);
-          onPlaceSelect(name, address);
-        } else if (onPlaceSelect) {
-          const fallbackName = place.name ?? "";
-          const fallbackAddr = place.formatted_address ?? "";
-          console.log("[PlaceSearchInput] fallback onPlaceSelect(name, address) =", fallbackName, fallbackAddr);
-          onPlaceSelect(fallbackName, fallbackAddr);
+      if (!place?.place_id) return;
+      // Fetch full details so we get name, address, and geometry for the share-style map link
+      service.getDetails(
+        { placeId: place.place_id, fields: ["name", "formatted_address", "geometry"] },
+        (
+          result: {
+            name?: string;
+            formatted_address?: string;
+            geometry?: { location?: { lat: () => number; lng: () => number } };
+          } | null,
+          status: string
+        ) => {
+          const name = result?.name?.trim() ?? place.name?.trim() ?? "";
+          const address = result?.formatted_address?.trim() ?? place.formatted_address?.trim() ?? "";
+          if (onPlaceSelect) onPlaceSelect(name, address);
+
+          const loc = result?.geometry?.location;
+          const lat = typeof loc?.lat === "function" ? loc.lat() : (loc as { lat?: number })?.lat;
+          const lng = typeof loc?.lng === "function" ? loc.lng() : (loc as { lng?: number })?.lng;
+          if (typeof lat === "number" && typeof lng === "number" && name) {
+            onChange(buildSharePlaceUrl(name, lat, lng));
+          } else {
+            onChange(placeIdToSearchUrl(place.place_id));
+          }
         }
-      });
+      );
     };
     autocomplete.addListener("place_changed", listener);
     return () => {
