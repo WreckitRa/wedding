@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy:build": "npm run build && cd server && npm install --production",
-    "start": "node server/index.js"
+    "start": "node server/index.js",
+    "railway": "env PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\" railway",
+    "init-db:railway": "npm run railway -- run node server/scripts/init-db.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.10",
