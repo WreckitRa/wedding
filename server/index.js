@@ -43,6 +43,38 @@ app.get("/api/admin/seed-main-admin", (req, res) => {
   res.json({ ok: true, message: "Main admin created. You can log in at /admin with MAIN_ADMIN_EMAIL and MAIN_ADMIN_PASSWORD." });
 });
 
+// GET /api/place-maps-url?placeId=ChIJ... — returns Google's exact map URL (Places API New). Uses key from X-Google-Api-Key header (same as Maps JS key) or GOOGLE_PLACES_API_KEY env.
+app.get("/api/place-maps-url", async (req, res) => {
+  const placeId = req.query.placeId;
+  const key = req.get("X-Google-Api-Key")?.trim() || process.env.GOOGLE_PLACES_API_KEY?.trim();
+  if (!placeId || typeof placeId !== "string" || !/^[a-zA-Z0-9_-]+$/.test(placeId)) {
+    return res.status(400).json({ error: "Missing or invalid placeId" });
+  }
+  if (!key) {
+    return res.status(503).json({ error: "Place map URL not configured" });
+  }
+  try {
+    const url = `https://places.googleapis.com/v1/places/${encodeURIComponent(placeId)}`;
+    const resp = await fetch(url, {
+      headers: {
+        "X-Goog-Api-Key": key,
+        "X-Goog-FieldMask": "googleMapsUri",
+      },
+    });
+    if (!resp.ok) {
+      const text = await resp.text();
+      return res.status(resp.status === 404 ? 404 : 502).json({ error: "Place not found or API error", details: text.slice(0, 200) });
+    }
+    const data = await resp.json();
+    const mapUrl = data.googleMapsUri ?? data.googleMapsLinks?.placeUri;
+    if (!mapUrl) return res.status(502).json({ error: "No map URL in response" });
+    res.json({ url: mapUrl });
+  } catch (e) {
+    console.error("[place-maps-url]", e);
+    res.status(500).json({ error: "Failed to fetch place map URL" });
+  }
+});
+
 app.use("/api/auth", createAuthRouter(db));
 app.use("/api/events", createEventsRouter(db));
 app.use("/api/early-access", createEarlyAccessRouter(db));

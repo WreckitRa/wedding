@@ -4,15 +4,15 @@ import { MapPin } from "lucide-react";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
 
-/** Build the same URL format Google Maps uses when you share a place: place name + coordinates */
-function buildSharePlaceUrl(name: string, lat: number, lng: number): string {
-  const encodedName = encodeURIComponent(name.trim() || "Place");
-  return `https://www.google.com/maps/place/${encodedName}/@${lat},${lng},17z`;
-}
-
-/** Fallback when we have place_id but no geometry (e.g. getDetails failed) */
-function placeIdToSearchUrl(placeId: string): string {
-  return `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(placeId)}`;
+/**
+ * Google-recommended Search URL: opens the exact place.
+ * Uses query (name) + query_place_id so Maps pins the right place; query is fallback if place_id isn't found.
+ * @see https://developers.google.com/maps/documentation/urls/get-started#search-action
+ */
+function buildPlaceSearchUrl(placeName: string, placeId: string): string {
+  const query = encodeURIComponent((placeName || "Place").trim());
+  const id = encodeURIComponent(placeId);
+  return `https://www.google.com/maps/search/?api=1&query=${query}&query_place_id=${id}`;
 }
 
 /** Load Google Maps script with Places library */
@@ -106,14 +106,38 @@ export default function PlaceSearchInput({
     const autocomplete = new Autocomplete(inputRef.current, { types: ["establishment", "geocode"] });
     autocompleteRef.current = autocomplete;
     const service = new PlacesService(document.createElement("div"));
-    const listener = () => {
+    const listener = async () => {
       const place = autocomplete.getPlace();
       const placeId = place?.place_id;
       if (!placeId) return;
-      // Fetch full details so we get name, address, and geometry for the share-style map link
+      const initialName = place.name?.trim() || "Place";
+      // Prefer Google's exact map URL from our backend (Places API New); fallback to built search URL. Use same key as Maps (Places enabled).
+      try {
+        const base = import.meta.env.VITE_API_URL ?? "";
+        const res = await fetch(`${base}/api/place-maps-url?placeId=${encodeURIComponent(placeId)}`, {
+          headers: GOOGLE_MAPS_API_KEY ? { "X-Google-Api-Key": GOOGLE_MAPS_API_KEY } : undefined,
+        });
+        if (res.ok) {
+          const data = (await res.json()) as { url?: string };
+          if (data?.url) {
+            onChange(data.url);
+            // Still fetch name + address for the form
+            const request = { placeId, fields: ["name", "formatted_address"] } as { placeId: string };
+            service.getDetails(request, (result: { name?: string; formatted_address?: string } | null) => {
+              const name = result?.name?.trim() ?? place.name?.trim() ?? "";
+              const address = result?.formatted_address?.trim() ?? place.formatted_address?.trim() ?? "";
+              if (onPlaceSelect) onPlaceSelect(name, address);
+            });
+            return;
+          }
+        }
+      } catch {
+        // ignore: use built URL
+      }
+      onChange(buildPlaceSearchUrl(initialName, placeId));
       const request = {
         placeId,
-        fields: ["name", "formatted_address", "geometry"],
+        fields: ["name", "formatted_address"],
       } as { placeId: string };
       service.getDetails(
         request,
@@ -121,21 +145,12 @@ export default function PlaceSearchInput({
           result: {
             name?: string;
             formatted_address?: string;
-            geometry?: { location?: { lat: () => number; lng: () => number } };
           } | null
         ) => {
           const name = result?.name?.trim() ?? place.name?.trim() ?? "";
           const address = result?.formatted_address?.trim() ?? place.formatted_address?.trim() ?? "";
           if (onPlaceSelect) onPlaceSelect(name, address);
-
-          const loc = result?.geometry?.location;
-          const lat = loc && typeof loc.lat === "function" ? loc.lat() : undefined;
-          const lng = loc && typeof loc.lng === "function" ? loc.lng() : undefined;
-          if (typeof lat === "number" && typeof lng === "number" && name) {
-            onChange(buildSharePlaceUrl(name, lat, lng));
-          } else {
-            onChange(placeIdToSearchUrl(placeId));
-          }
+          if (name) onChange(buildPlaceSearchUrl(name, placeId));
         }
       );
     };

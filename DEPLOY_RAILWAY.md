@@ -40,7 +40,8 @@ In the same service, open **Variables** and add:
 | `MAIN_ADMIN_PASSWORD`  | Yes      | Admin login password. |
 | `PORT`                 | No       | Railway sets this automatically. |
 | `SQLITE_PATH`          | No       | Default `./data/wedding.db`. |
-| `OPENAI_API_KEY`       | No       | Only if you use “Generate from words” in Theme. |
+| `OPENAI_API_KEY`       | No       | Only if you use "Generate from words" in Theme. |
+| `GOOGLE_PLACES_API_KEY` | No      | For exact Google Maps link when selecting a place in admin (Places API New). If unset, a built search URL is used. |
 
 Do **not** set `VITE_API_URL`; the app is served from the same origin on Railway.
 
