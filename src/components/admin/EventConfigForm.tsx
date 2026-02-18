@@ -634,6 +634,17 @@ export default function EventConfigForm({ config, onChange, eventSlug }: EventCo
               placeholder="e.g. We can't wait to celebrate with you! ✨💒"
             />
           </div>
+          <div>
+            <label className={LABEL_CLASS_SM}>Footer text (optional)</label>
+            <p className="text-xs text-slate-500 mb-1">Replaces the default &quot;Powered by dearguest.link&quot; line at the bottom of the invitation. Leave blank for the default.</p>
+            <input
+              className={INPUT_CLASS}
+              type="text"
+              value={config.footerText ?? ""}
+              onChange={(e) => setTop("footerText", e.target.value)}
+              placeholder="e.g. Made with love · dearguest.link"
+            />
+          </div>
         </div>
       </section>
     </div>

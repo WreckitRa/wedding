@@ -7,42 +7,15 @@ interface WeddingInfoProps {
   config: EventConfig;
 }
 
-/** Extract place_id from a saved map URL (place_id:xxx, q=place_id:xxx, or query_place_id=xxx) */
-function getPlaceIdFromMapUrl(url: string): string | null {
-  if (!url?.trim()) return null;
-  try {
-    const decoded = decodeURIComponent(url);
-    const placeIdMatch =
-      decoded.match(/query_place_id=([^&\s]+)/i) ||
-      decoded.match(/[?&]q=place_id:([^&\s]+)/i) ||
-      decoded.match(/place_id:([^&\s/]+)/i);
-    return placeIdMatch ? placeIdMatch[1].trim() : null;
-  } catch {
-    return null;
-  }
-}
-
-/** Build Google Maps directions URL. Prefers address (reliable); falls back to place_id or raw map URL. */
-function getDirectionsUrl(storedMapUrl: string, address?: string | null): string {
-  const trimmedAddr = address?.trim();
-  if (trimmedAddr) {
-    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(trimmedAddr)}`;
-  }
-  const placeId = getPlaceIdFromMapUrl(storedMapUrl);
-  if (placeId) {
-    return `https://www.google.com/maps/dir/?api=1&destination=place_id:${encodeURIComponent(placeId)}`;
-  }
-  return storedMapUrl;
-}
-
 const WeddingInfo: React.FC<WeddingInfoProps> = ({ config }) => {
   const handleAddToCalendar = () => {
     const calendarUrl = generateCalendarLink(config);
     window.open(calendarUrl, "_blank");
   };
 
-  const handleOpenMaps = (mapUrl: string, address?: string | null) => {
-    window.open(getDirectionsUrl(mapUrl, address), "_blank");
+  /** Open the exact map link the admin set (search result or pasted link) so the correct place opens. */
+  const handleOpenMaps = (mapUrl: string) => {
+    window.open(mapUrl, "_blank");
   };
 
   return (
@@ -78,7 +51,7 @@ const WeddingInfo: React.FC<WeddingInfoProps> = ({ config }) => {
                 <p className="text-sm text-gray-500">{config.churchAddress}</p>
                 {config.churchMap && (
                   <button
-                    onClick={() => handleOpenMaps(config.churchMap!, config.churchAddress ?? config.churchName)}
+                    onClick={() => handleOpenMaps(config.churchMap!)}
                     className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-primary-50 text-primary-600 rounded-md text-sm font-medium hover:bg-primary-100 transition-colors"
                   >
                     <MapPin size={16} />
@@ -111,7 +84,7 @@ const WeddingInfo: React.FC<WeddingInfoProps> = ({ config }) => {
                 <p className="text-sm text-gray-500">{config.venueAddress}</p>
                 {config.venueMap && (
                   <button
-                    onClick={() => handleOpenMaps(config.venueMap!, config.venueAddress ?? config.venueName)}
+                    onClick={() => handleOpenMaps(config.venueMap!)}
                     className="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-primary-50 text-primary-600 rounded-md text-sm font-medium hover:bg-primary-100 transition-colors"
                   >
                     <MapPin size={16} />

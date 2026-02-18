@@ -253,15 +253,21 @@ export default function EventPage() {
       )}
       <ScrollReveal>
         <footer className="py-8 flex flex-col items-center justify-center gap-1 border-t border-black/10 bg-white/50">
-        <a
-          href="https://dearguest.link"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-slate-500 hover:text-slate-700 transition-colors tracking-wide"
-        >
-          Powered by dearguest.link
-        </a>
-        <span className="text-[10px] text-slate-400 tracking-wider uppercase">Invitations</span>
+          {safeConfig.footerText?.trim() ? (
+            <p className="text-xs text-slate-500 text-center whitespace-pre-line">{safeConfig.footerText.trim()}</p>
+          ) : (
+            <>
+              <a
+                href="https://dearguest.link"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-slate-500 hover:text-slate-700 transition-colors tracking-wide"
+              >
+                Powered by dearguest.link
+              </a>
+              <span className="text-[10px] text-slate-400 tracking-wider uppercase">Invitations</span>
+            </>
+          )}
         </footer>
       </ScrollReveal>
     </div>

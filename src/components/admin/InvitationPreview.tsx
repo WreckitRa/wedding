@@ -55,15 +55,21 @@ export default function InvitationPreview({ config }: InvitationPreviewProps) {
               </section>
             )}
             <footer className="py-6 flex flex-col items-center justify-center gap-0.5 border-t border-black/10 bg-white/50">
-              <a
-                href="https://dearguest.link"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-slate-500 hover:text-slate-700 tracking-wide"
-              >
-                Powered by dearguest.link
-              </a>
-              <span className="text-[10px] text-slate-400 tracking-wider uppercase">Invitations</span>
+              {config.footerText?.trim() ? (
+                <p className="text-xs text-slate-500 text-center whitespace-pre-line">{config.footerText.trim()}</p>
+              ) : (
+                <>
+                  <a
+                    href="https://dearguest.link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-slate-500 hover:text-slate-700 tracking-wide"
+                  >
+                    Powered by dearguest.link
+                  </a>
+                  <span className="text-[10px] text-slate-400 tracking-wider uppercase">Invitations</span>
+                </>
+              )}
             </footer>
           </div>
         </div>
