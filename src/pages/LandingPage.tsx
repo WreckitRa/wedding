@@ -7,6 +7,7 @@ export default function LandingPage() {
   const [modalPlan, setModalPlan] = useState("");
   const [toast, setToast] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const heroCardRef = useRef<HTMLDivElement>(null);
   const kpiAnimated = useRef(false);
   const openedBarRef = useRef<HTMLElement>(null);
@@ -89,6 +90,12 @@ export default function LandingPage() {
     };
   }, [modalOpen]);
 
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileNavOpen]);
+
   const handleLeadSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -135,22 +142,35 @@ export default function LandingPage() {
       <nav className="nav">
         <div className="wrap">
           <div className="inner">
-            <a className="brand" href="#top" aria-label="DearGuest Home">
+            <a className="brand" href="#top" aria-label="DearGuest Home" onClick={() => setMobileNavOpen(false)}>
               <img src="/dearguest-logo.png" alt="" className="brand-logo" aria-hidden />
             </a>
-            <div className="navlinks" aria-label="Primary">
-              <a href="#features">Features</a>
-              <a href="#how">How it works</a>
-              <a href="#pricing">Pricing</a>
-              <a href="#faq">FAQ</a>
-            </div>
-            <div className="navcta">
-              <button type="button" className="btn" onClick={() => scrollTo("#pricing")}>
-                See pricing
-              </button>
-              <button type="button" className="btn primary" onClick={() => openModal()}>
-                Get early access
-              </button>
+            <button
+              type="button"
+              className="nav-burger"
+              onClick={() => setMobileNavOpen((o) => !o)}
+              aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileNavOpen}
+            >
+              <span />
+              <span />
+              <span />
+            </button>
+            <div className={`nav-menu ${mobileNavOpen ? "nav-menu-open" : ""}`} aria-hidden={!mobileNavOpen}>
+              <div className="navlinks" aria-label="Primary">
+                <a href="#features" onClick={() => setMobileNavOpen(false)}>Features</a>
+                <a href="#how" onClick={() => setMobileNavOpen(false)}>How it works</a>
+                <a href="#pricing" onClick={() => setMobileNavOpen(false)}>Pricing</a>
+                <a href="#faq" onClick={() => setMobileNavOpen(false)}>FAQ</a>
+              </div>
+              <div className="navcta">
+                <button type="button" className="btn" onClick={() => { scrollTo("#pricing"); setMobileNavOpen(false); }}>
+                  See pricing
+                </button>
+                <button type="button" className="btn primary" onClick={() => { openModal(); setMobileNavOpen(false); }}>
+                  Get early access
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -596,11 +616,11 @@ export default function LandingPage() {
               </div>
               <form
                 onSubmit={handleModalSubmit}
-                style={{ display: "grid", gap: 10 }}
+                className="landing-modal-form"
               >
                 <input className="input" type="text" name="name" placeholder="Name" autoComplete="name" required />
                 <input className="input" type="email" name="email" placeholder="Email" autoComplete="email" required />
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div className="landing-modal-form-row">
                   <select className="input" name="type" required>
                     <option value="" disabled>Event type</option>
                     <option>Wedding</option>
@@ -617,7 +637,7 @@ export default function LandingPage() {
                   </select>
                 </div>
                 <input className="input" type="text" name="city" placeholder="City (optional)" autoComplete="address-level2" />
-                <button className="btn primary" type="submit" disabled={submitting}>
+                <button className="btn primary landing-modal-submit" type="submit" disabled={submitting}>
                   {submitting ? "Sending…" : "Request access"}
                 </button>
                 <p className="micro" style={{ marginTop: 8, marginBottom: 0 }}>

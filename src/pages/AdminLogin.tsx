@@ -36,7 +36,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="admin-portal min-h-screen flex items-center justify-center bg-slate-100 px-4 py-12">
+    <div className="admin-portal min-h-screen flex items-center justify-center bg-slate-100 px-4 py-8 sm:py-12">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex justify-center mb-8">
@@ -49,7 +49,7 @@ export default function AdminLogin() {
           <p className="text-slate-500 text-sm mt-1">Event invitations & RSVP</p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
           <h2 className="text-lg font-semibold text-slate-900 mb-6">Sign in to your account</h2>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>

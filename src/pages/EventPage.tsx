@@ -4,7 +4,7 @@ import { recordGuestOpened, getAdminUser } from "../api/client";
 import { getThemeStyleTag, getThemeFontsUrl } from "../utils/theme";
 import CardViewer from "../components/CardViewer";
 import RSVPFlow from "../components/RSVPFlow";
-import ScrollReveal from "../components/ScrollReveal";
+import ScrollReveal from "../components/ScrollReveal.tsx";
 import SpotifyPlaylist from "../components/SpotifyPlaylist";
 import WeddingInfo from "../components/WeddingInfo";
 import WelcomeSection from "../components/WelcomeSection";

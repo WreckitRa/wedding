@@ -178,73 +178,126 @@ export default function AdminDashboard() {
           action={isMainAdmin ? { label: "Create event", onClick: () => { setShowCreate(true); setCreateStep(1); setCreateError(""); } } : undefined}
         />
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/80">
-                  <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Event</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">URL</th>
-                  <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right w-48">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {events.map((ev) => (
-                  <tr key={ev.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <span className="font-medium text-slate-900">{ev.name}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <code className="text-sm text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{baseUrl}e/{ev.slug}</code>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <Link
-                          to={`/admin/events/${ev.slug}`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                          title="View / Manage"
-                        >
-                          <Eye className="w-4 h-4" />
-                          View
-                        </Link>
-                        <Link
-                          to={`/admin/events/${ev.slug}?tab=invitation`}
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                          title="Edit invitation"
-                        >
-                          <Pencil className="w-4 h-4" />
-                          Edit
-                        </Link>
-                        {isMainAdmin && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteEvent(ev.slug)}
-                            disabled={deletingSlug === ev.slug}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
-                            title="Delete event"
-                          >
-                            {deletingSlug === ev.slug ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
-                            Delete
-                          </button>
-                        )}
-                      </div>
-                    </td>
+        <>
+          {/* Desktop: table */}
+          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden hidden md:block">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/80">
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Event</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">URL</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right w-48">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {events.map((ev) => (
+                    <tr key={ev.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-4 py-3">
+                        <span className="font-medium text-slate-900">{ev.name}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <code className="text-sm text-slate-500 bg-slate-100 px-2 py-0.5 rounded">{baseUrl}e/{ev.slug}</code>
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <Link
+                            to={`/admin/events/${ev.slug}`}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                            title="View / Manage"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View
+                          </Link>
+                          <Link
+                            to={`/admin/events/${ev.slug}?tab=invitation`}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                            title="Edit invitation"
+                          >
+                            <Pencil className="w-4 h-4" />
+                            Edit
+                          </Link>
+                          {isMainAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteEvent(ev.slug)}
+                              disabled={deletingSlug === ev.slug}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                              title="Delete event"
+                            >
+                              {deletingSlug === ev.slug ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+          {/* Mobile: cards */}
+          <div className="md:hidden space-y-3">
+            {events.map((ev) => (
+              <div
+                key={ev.id}
+                className="rounded-xl border border-slate-200 bg-white p-4 flex flex-col gap-3"
+              >
+                <div>
+                  <p className="font-medium text-slate-900">{ev.name}</p>
+                  <code className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded block mt-1 break-all">
+                    {baseUrl}e/{ev.slug}
+                  </code>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Link
+                    to={`/admin/events/${ev.slug}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 min-h-[44px]"
+                    title="View / Manage"
+                  >
+                    <Eye className="w-4 h-4" />
+                    View
+                  </Link>
+                  <Link
+                    to={`/admin/events/${ev.slug}?tab=invitation`}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 min-h-[44px]"
+                    title="Edit invitation"
+                  >
+                    <Pencil className="w-4 h-4" />
+                    Edit
+                  </Link>
+                  {isMainAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteEvent(ev.slug)}
+                      disabled={deletingSlug === ev.slug}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 min-h-[44px]"
+                      title="Delete event"
+                    >
+                      {deletingSlug === ev.slug ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                      Delete
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Create event modal — two steps: basics then optional customization */}
       {isMainAdmin && showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl shadow-xl border border-slate-200 w-full max-w-2xl max-h-[90vh] flex flex-col sm:max-h-[85vh]">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 shrink-0">
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold text-slate-900">Create event</h2>
@@ -336,10 +389,10 @@ export default function AdminDashboard() {
                       Customize invitation text, theme colors, and fonts. Couple names is pre-filled from the event name—edit it in Basics if you like.
                     </p>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                      <div className="max-h-[50vh] overflow-y-auto pr-2">
+                      <div className="max-h-[40vh] lg:max-h-[50vh] overflow-y-auto pr-2">
                         <EventConfigForm config={config} onChange={setConfig} />
                       </div>
-                      <div>
+                      <div className="min-h-0">
                         <p className="text-xs font-medium text-slate-500 mb-2">Live preview</p>
                         <InvitationPreview config={config} />
                       </div>
@@ -352,8 +405,8 @@ export default function AdminDashboard() {
                   </div>
                 )}
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-t border-slate-200 bg-slate-50/50 shrink-0">
-                <div className="flex gap-2">
+              <div className="flex flex-col-reverse sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between gap-3 px-4 sm:px-6 py-4 border-t border-slate-200 bg-slate-50/50 shrink-0">
+                <div className="flex flex-wrap gap-2">
                   {createStep === 2 && (
                     <button
                       type="button"
@@ -378,7 +431,7 @@ export default function AdminDashboard() {
                     </button>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col-reverse sm:flex-row gap-2">
                   <button
                     type="submit"
                     disabled={creating}

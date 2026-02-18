@@ -49,6 +49,12 @@
   margin: 0 auto;
 }
 
+@media (max-width: 640px) {
+  .landing-page .wrap {
+    width: calc(100% - 32px);
+  }
+}
+
 /* ----- Nav ----- */
 .landing-page .nav {
   position: sticky;
@@ -63,8 +69,106 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
+  padding: 12px 0;
   gap: 16px;
+}
+
+/* Mobile: hamburger */
+.landing-page .nav-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--paper);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.landing-page .nav-burger span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  max-width: 20px;
+  margin: 0 auto;
+  background: currentColor;
+  border-radius: 1px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.landing-page .nav-burger[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.landing-page .nav-burger[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+}
+
+.landing-page .nav-burger[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 960px) {
+  .landing-page .nav-burger {
+    display: flex;
+  }
+
+  .landing-page .nav-menu {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 45;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.25s ease, opacity 0.2s ease;
+  }
+
+  .landing-page .nav-menu.nav-menu-open {
+    max-height: 80vh;
+    opacity: 1;
+    overflow-y: auto;
+  }
+
+  .landing-page .nav-menu .navlinks {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .landing-page .nav-menu .navlinks a {
+    padding: 12px 0;
+    font-size: 1rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .landing-page .nav-menu .navcta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+
+  .landing-page .nav-menu .navcta .btn {
+    width: 100%;
+    justify-content: center;
+    min-height: 48px;
+  }
 }
 
 .landing-page .brand {
@@ -182,6 +286,11 @@
 /* ----- Hero ----- */
 .landing-page .hero { padding: 72px 0 56px; }
 
+@media (max-width: 640px) {
+  .landing-page .hero { padding: 40px 0 40px; }
+  .landing-page section { padding: 48px 0; }
+}
+
 .landing-page .heroGrid {
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
@@ -191,7 +300,8 @@
 
 @media (max-width: 960px) {
   .landing-page .heroGrid { grid-template-columns: 1fr; gap: 40px; }
-  .landing-page .navlinks { display: none; }
+  .landing-page .inner > .navlinks,
+  .landing-page .inner > .navcta { display: none; }
 }
 
 .landing-page .hero .badge-row {
@@ -807,6 +917,23 @@
   flex-wrap: wrap;
 }
 
+@media (max-width: 520px) {
+  .landing-page .cta .form {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .landing-page .cta .form .input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .landing-page .cta .form .btn {
+    width: 100%;
+    min-height: 48px;
+  }
+}
+
 .landing-page .input {
   flex: 1 1 200px;
   min-width: 200px;
@@ -888,20 +1015,46 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 16px;
+  overflow-y: auto;
 }
 
 .landing-page .modalBox {
   width: min(560px, 100%);
+  max-height: min(90vh, 600px);
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-strong);
   background: var(--bg-elevated);
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin: auto;
 }
 
 .landing-page .modalBox .modalTitle {
   font-family: var(--font-heading);
   font-weight: 600;
   letter-spacing: -0.02em;
+}
+
+.landing-page .landing-modal-form {
+  display: grid;
+  gap: 10px;
+}
+
+.landing-page .landing-modal-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 400px) {
+  .landing-page .landing-modal-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.landing-page .landing-modal-submit {
+  min-height: 48px;
 }

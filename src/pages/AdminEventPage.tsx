@@ -340,16 +340,16 @@ export default function AdminEventPage() {
       )}
 
       {/* Event links */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 mb-8">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6 mb-6 sm:mb-8">
         <h3 className="text-sm font-semibold text-slate-900 mb-3">Event links</h3>
         <div className="space-y-4">
           <div>
             <p className="text-xs text-slate-500 mb-2">Public link — anyone can open and enter their name to RSVP</p>
-            <div className="flex flex-wrap items-center gap-2">
-              <code className="flex-1 min-w-0 px-3 py-2 bg-slate-50 rounded-lg text-sm text-slate-700 truncate">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
+              <code className="flex-1 min-w-0 px-3 py-2 bg-slate-50 rounded-lg text-sm text-slate-700 break-all">
                 {publicUrl}
               </code>
-              <CopyButton text={publicUrl} variant="secondary" />
+              <CopyButton text={publicUrl} variant="secondary" className="shrink-0 self-start sm:self-center" />
             </div>
           </div>
           <p className="text-xs text-slate-500">
@@ -359,17 +359,17 @@ export default function AdminEventPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <button type="button" onClick={() => setTabAndUrl("guests")} className={tabClass(tab === "guests")}>
+      <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+        <button type="button" onClick={() => setTabAndUrl("guests")} className={tabClass(tab === "guests") + " min-h-[44px] px-3 sm:px-4"}>
           Guests ({event.guestCount})
         </button>
-        <button type="button" onClick={() => setTabAndUrl("rsvps")} className={tabClass(tab === "rsvps")}>
+        <button type="button" onClick={() => setTabAndUrl("rsvps")} className={tabClass(tab === "rsvps") + " min-h-[44px] px-3 sm:px-4"}>
           RSVPs ({event.rsvpCount})
         </button>
         <button
           type="button"
           onClick={() => setTabAndUrl("invitation")}
-          className={tabClass(tab === "invitation")}
+          className={tabClass(tab === "invitation") + " min-h-[44px] px-3 sm:px-4"}
         >
           Invitation
         </button>
@@ -378,15 +378,15 @@ export default function AdminEventPage() {
       {/* Tab: Guests */}
       {tab === "guests" && (
         <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-          <div className="p-6 border-b border-slate-200">
+          <div className="p-4 sm:p-6 border-b border-slate-200">
             <h3 className="text-sm font-semibold text-slate-900 mb-4">Add guest (dedicated link)</h3>
-            <form onSubmit={handleAddGuest} className="flex flex-wrap gap-3">
+            <form onSubmit={handleAddGuest} className="flex flex-col sm:flex-row flex-wrap gap-3">
               <input
                 type="text"
                 value={addName}
                 onChange={(e) => setAddName(e.target.value)}
                 placeholder="Name *"
-                className={INPUT_CLASS + " w-40"}
+                className={INPUT_CLASS + " w-full sm:w-40 min-h-[44px]"}
                 required
               />
               <input
@@ -394,7 +394,7 @@ export default function AdminEventPage() {
                 value={addPartner}
                 onChange={(e) => setAddPartner(e.target.value)}
                 placeholder="Partner (optional)"
-                className={INPUT_CLASS + " w-36"}
+                className={INPUT_CLASS + " w-full sm:w-36 min-h-[44px]"}
               />
               <input
                 type="number"
@@ -402,12 +402,12 @@ export default function AdminEventPage() {
                 value={addExtra}
                 onChange={(e) => setAddExtra(parseInt(e.target.value, 10) || 0)}
                 placeholder="Max +1"
-                className={INPUT_CLASS + " w-24"}
+                className={INPUT_CLASS + " w-full sm:w-24 min-h-[44px]"}
               />
               <button
                 type="submit"
                 disabled={adding}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 min-h-[44px] w-full sm:w-auto"
               >
                 {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                 {adding ? "Adding…" : "Add guest"}
@@ -416,14 +416,14 @@ export default function AdminEventPage() {
             {newInviteUrl && (
               <div className="mt-4 p-4 rounded-lg bg-emerald-50 border border-emerald-200">
                 <p className="text-sm font-medium text-emerald-800 mb-2">Invite link created — copy and send to guest:</p>
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                   <code className="flex-1 min-w-0 px-3 py-2 bg-white rounded text-sm break-all">{newInviteUrl}</code>
-                  <CopyButton text={newInviteUrl} label="Copy" copiedLabel="Copied!" variant="primary" />
+                  <CopyButton text={newInviteUrl} label="Copy" copiedLabel="Copied!" variant="primary" className="shrink-0 self-start" />
                 </div>
               </div>
             )}
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
             {guests.length === 0 ? (
               <div className="p-10">
                 <AdminEmptyState
@@ -433,13 +433,13 @@ export default function AdminEventPage() {
                 />
               </div>
             ) : (
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-left text-sm min-w-[640px]">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/80">
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Guest</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Opened</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">RSVP</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right w-52">Actions</th>
+                    <th className="px-3 sm:px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Guest</th>
+                    <th className="px-3 sm:px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Opened</th>
+                    <th className="px-3 sm:px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">RSVP</th>
+                    <th className="px-3 sm:px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right w-52">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -614,42 +614,43 @@ export default function AdminEventPage() {
       {/* Tab: Invitation */}
       {tab === "invitation" && (
         <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-4 p-6 border-b border-slate-200 bg-slate-50/30">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center justify-between gap-3 p-4 sm:p-6 border-b border-slate-200 bg-slate-50/30">
             <h3 className="text-sm font-semibold text-slate-900">Edit invitation</h3>
             <button
               type="button"
               onClick={handleSaveInvitation}
               disabled={savingConfig}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 min-h-[44px]"
             >
               {savingConfig ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {savingConfig ? "Saving…" : "Save changes"}
             </button>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
-            <div className="p-6 max-h-[70vh] overflow-y-auto border-r border-slate-200">
+            <div className="p-4 sm:p-6 max-h-[50vh] lg:max-h-[70vh] overflow-y-auto border-b lg:border-b-0 lg:border-r border-slate-200">
               <EventConfigForm config={invitationConfig} onChange={setInvitationConfig} eventSlug={eventSlug ?? undefined} />
             </div>
-            <div className="p-6 bg-slate-50/50">
-              <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="p-4 sm:p-6 bg-slate-50/50 flex flex-col items-center">
+              <div className="flex items-center justify-between gap-2 mb-2 w-full max-w-[375px]">
                 <p className="text-xs font-medium text-slate-500">Real invitation (save to update)</p>
                 <button
                   type="button"
                   onClick={() => setPreviewKey((k) => k + 1)}
-                  className="text-xs text-slate-600 hover:text-slate-900 font-medium"
+                  className="text-xs text-slate-600 hover:text-slate-900 font-medium shrink-0"
                 >
                   Refresh
                 </button>
               </div>
-              <div className="flex justify-center">
-                <div className="relative rounded-[2rem] border-[10px] border-slate-800 bg-slate-800 shadow-xl overflow-hidden" style={{ width: 375 }}>
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-800 rounded-b-2xl z-10" aria-hidden />
-                  <div className="bg-white rounded-[1.25rem] overflow-hidden" style={{ minHeight: 600 }}>
+              <div className="flex justify-center w-full overflow-x-auto">
+                <div className="relative rounded-[2rem] border-[8px] sm:border-[10px] border-slate-800 bg-slate-800 shadow-xl overflow-hidden shrink-0 w-full max-w-[375px]">
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 sm:w-32 h-5 sm:h-6 bg-slate-800 rounded-b-2xl z-10" aria-hidden />
+                  <div className="bg-white rounded-[1.25rem] overflow-hidden" style={{ minHeight: 500 }}>
                     <iframe
                       key={previewKey}
                       title="Invitation preview"
                       src={`${baseUrl}e/${eventSlug}?preview=1`}
-                      className="w-[375px] h-[70vh] min-h-[600px] border-0 block"
+                      className="w-full border-0 block"
+                      style={{ height: "70vh", minHeight: 500 }}
                     />
                   </div>
                 </div>
