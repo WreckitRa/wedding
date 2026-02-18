@@ -19,8 +19,24 @@ interface RSVPData {
   message: string;
 }
 
+/** Logical steps: 1 = attendance, 2 = music, 3 = note/reaction */
+const STEP_ATTENDANCE = 1;
+const STEP_MUSIC = 2;
+const STEP_NOTE = 3;
+
 const RSVPFlow: React.FC<RSVPFlowProps> = ({ eventSlug, config, guest, isPublic }) => {
-  const [currentStep, setCurrentStep] = useState(1);
+  const enabledSteps = useMemo(() => {
+    const steps: number[] = [STEP_ATTENDANCE];
+    if (config.rsvpSteps?.collectMusic !== false) steps.push(STEP_MUSIC);
+    if (config.rsvpSteps?.collectNote !== false) steps.push(STEP_NOTE);
+    return steps;
+  }, [config.rsvpSteps?.collectMusic, config.rsvpSteps?.collectNote]);
+
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const currentStep = enabledSteps[currentStepIndex] ?? STEP_ATTENDANCE;
+  const totalSteps = enabledSteps.length;
+  const isLastStep = currentStepIndex >= totalSteps - 1;
+
   const [rsvpData, setRsvpData] = useState<RSVPData>({
     attendance: "",
     extraGuests: 0,
@@ -87,19 +103,19 @@ const RSVPFlow: React.FC<RSVPFlowProps> = ({ eventSlug, config, guest, isPublic 
   };
 
   const handleNext = () => {
-    if (currentStep < 3) {
-      if (currentStep === 1 && rsvpData.attendance === "no") {
-        setIsNoSubmitting(true);
-        handleSubmit().finally(() => setIsNoSubmitting(false));
-      } else {
-        setCurrentStep(currentStep + 1);
-      }
+    if (currentStep === STEP_ATTENDANCE && rsvpData.attendance === "no") {
+      setIsNoSubmitting(true);
+      handleSubmit().finally(() => setIsNoSubmitting(false));
+      return;
+    }
+    if (!isLastStep) {
+      setCurrentStepIndex((i) => i + 1);
     }
   };
 
   const handlePrev = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex((i) => i - 1);
     }
   };
 
@@ -158,25 +174,25 @@ const RSVPFlow: React.FC<RSVPFlowProps> = ({ eventSlug, config, guest, isPublic 
 
   const StepIndicator = () => (
     <div className="flex items-center justify-center mb-8">
-      {[1, 2, 3].map((step) => (
-        <React.Fragment key={step}>
+      {enabledSteps.map((stepNum, idx) => (
+        <React.Fragment key={stepNum}>
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium ${
-              step === currentStep
+              idx === currentStepIndex
                 ? "bg-primary-500 text-white"
-                : step < currentStep
-                ? "bg-green-500 text-white"
-                : "bg-primary-200 text-primary-600"
+                : idx < currentStepIndex
+                  ? "bg-green-500 text-white"
+                  : "bg-primary-200 text-primary-600"
             }`}
           >
-            {step < currentStep ? "✓" : step}
+            {idx < currentStepIndex ? "✓" : idx + 1}
           </div>
-          {step < 3 && (
+          {idx < enabledSteps.length - 1 && (
             <div
               className={`w-16 h-0.5 ${
-                step < currentStep ? "bg-green-500" : "bg-gray-200"
+                idx < currentStepIndex ? "bg-green-500" : "bg-gray-200"
               }`}
-            ></div>
+            />
           )}
         </React.Fragment>
       ))}
@@ -301,7 +317,7 @@ const RSVPFlow: React.FC<RSVPFlowProps> = ({ eventSlug, config, guest, isPublic 
           Help us set the vibe! 🎧
         </h3>
         <p className="text-center text-sm text-gray-500 mb-6">(Optional)</p>
-        <p className="text-center text-blackmb-6">
+        <p className="text-center text-black mb-6">
           Drop 2 songs you need to dance to!
         </p>
 
@@ -489,17 +505,17 @@ const RSVPFlow: React.FC<RSVPFlowProps> = ({ eventSlug, config, guest, isPublic 
               )}
 
               <div className="min-h-[400px]">
-                {currentStep === 1 && <Step1 />}
-                {currentStep === 2 && Step2}
-                {currentStep === 3 && Step3}
+                {currentStep === STEP_ATTENDANCE && <Step1 />}
+                {currentStep === STEP_MUSIC && Step2}
+                {currentStep === STEP_NOTE && Step3}
               </div>
 
               <div className="flex justify-between mt-8">
                 <button
                   onClick={handlePrev}
-                  disabled={currentStep === 1}
+                  disabled={currentStepIndex === 0}
                   className={`px-6 py-3 rounded-md font-medium transition-all ${
-                    currentStep === 1
+                    currentStepIndex === 0
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                       : "bg-primary-700 text-white hover:bg-gray-300"
                   }`}
@@ -507,16 +523,16 @@ const RSVPFlow: React.FC<RSVPFlowProps> = ({ eventSlug, config, guest, isPublic 
                   Previous
                 </button>
 
-                {currentStep < 3 ? (
+                {!isLastStep ? (
                   <button
-                    ref={currentStep === 1 ? nextButtonRef : undefined}
+                    ref={currentStep === STEP_ATTENDANCE ? nextButtonRef : undefined}
                     onClick={handleNext}
                     disabled={
-                      currentStep === 1 &&
+                      currentStep === STEP_ATTENDANCE &&
                       (!rsvpData.attendance || isNoSubmitting)
                     }
                     className={`px-6 py-3 rounded-md font-medium transition-all flex ${
-                      currentStep === 1 &&
+                      currentStep === STEP_ATTENDANCE &&
                       (!rsvpData.attendance || isNoSubmitting)
                         ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                         : "bg-black text-white hover:bg-primary-700 animate-pulse"

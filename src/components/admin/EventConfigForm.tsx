@@ -86,6 +86,19 @@ export default function EventConfigForm({ config, onChange, eventSlug }: EventCo
     [config, onChange]
   );
 
+  const setRsvpStep = useCallback(
+    (key: "collectMusic" | "collectNote", value: boolean) => {
+      onChange({
+        ...config,
+        rsvpSteps: {
+          ...config.rsvpSteps,
+          [key]: value,
+        },
+      });
+    },
+    [config, onChange]
+  );
+
   const setImages = useCallback(
     (key: "front" | "back" | "envelope", value: string) => {
       onChange({
@@ -181,6 +194,8 @@ export default function EventConfigForm({ config, onChange, eventSlug }: EventCo
   const showWeddingInfo = sections.weddingInfo !== false;
   const showSpotify = sections.spotify !== false;
   const showCardViewer = sections.cardViewer !== false;
+  const showRsvp = sections.rsvp !== false;
+  const rsvpSteps = config.rsvpSteps ?? {};
 
   return (
     <div className="space-y-6">
@@ -209,6 +224,31 @@ export default function EventConfigForm({ config, onChange, eventSlug }: EventCo
           {section("spotify", "Spotify playlist")}
           {section("rsvp", "RSVP")}
         </div>
+        {showRsvp && (
+          <div className="mt-4 pl-1 border-l-2 border-slate-200">
+            <p className={SECTION_TITLE_CLASS_MUTED}>RSVP form: choose which steps to show</p>
+            <div className="flex flex-wrap gap-4 mt-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={rsvpSteps.collectMusic !== false}
+                  onChange={(e) => setRsvpStep("collectMusic", e.target.checked)}
+                  className="rounded border-slate-300 text-slate-900 focus:ring-slate-900/20"
+                />
+                <span className="text-sm text-slate-700">Collect song requests (music)</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={rsvpSteps.collectNote !== false}
+                  onChange={(e) => setRsvpStep("collectNote", e.target.checked)}
+                  className="rounded border-slate-300 text-slate-900 focus:ring-slate-900/20"
+                />
+                <span className="text-sm text-slate-700">Collect note &amp; reaction</span>
+              </label>
+            </div>
+          </div>
+        )}
       </section>
 
       <EventDatesSection config={config} onChange={onChange} />

@@ -63,6 +63,11 @@ export interface EventConfig {
   bridePhoneNumber?: string;
   spotifyId?: string;
   rsvpDeadline?: string;
+  /** Which RSVP form steps to show. Omitted or true = show. Set to false to hide (e.g. no music collection). */
+  rsvpSteps?: {
+    collectMusic?: boolean;
+    collectNote?: boolean;
+  };
   theme?: EventTheme;
   sections?: EventSections;
   /** Custom footer line (replaces default "Developed with love") */

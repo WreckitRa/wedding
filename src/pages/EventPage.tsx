@@ -4,6 +4,7 @@ import { recordGuestOpened, getAdminUser } from "../api/client";
 import { getThemeStyleTag, getThemeFontsUrl } from "../utils/theme";
 import CardViewer from "../components/CardViewer";
 import RSVPFlow from "../components/RSVPFlow";
+import ScrollReveal from "../components/ScrollReveal";
 import SpotifyPlaylist from "../components/SpotifyPlaylist";
 import WeddingInfo from "../components/WeddingInfo";
 import WelcomeSection from "../components/WelcomeSection";
@@ -199,30 +200,51 @@ export default function EventPage() {
     <div className="min-h-screen event-invitation">
       <style dangerouslySetInnerHTML={{ __html: getThemeStyleTag(safeConfig.theme) }} />
       <ScrollIndicator />
-      {show("welcome") && <WelcomeSection config={safeConfig} guest={guest!} />}
-      {show("cardViewer") && <CardViewer config={safeConfig} />}
-      {show("weddingInfo") && <WeddingInfo config={safeConfig} />}
+      {show("welcome") && (
+        <ScrollReveal>
+          <WelcomeSection config={safeConfig} guest={guest!} />
+        </ScrollReveal>
+      )}
+      {show("cardViewer") && (
+        <ScrollReveal>
+          <CardViewer config={safeConfig} />
+        </ScrollReveal>
+      )}
+      {show("weddingInfo") && (
+        <ScrollReveal>
+          <WeddingInfo config={safeConfig} />
+        </ScrollReveal>
+      )}
       {safeConfig.customParagraph?.trim() && (
-        <section className="py-16 px-6 bg-primary-100">
-          <div className="max-w-2xl mx-auto">
-            <div className="rounded-md bg-white px-8 py-10 shadow-lg text-left">
-              <p className="text-base md:text-lg text-black/90 leading-loose whitespace-pre-line font-serif max-w-xl mx-auto" style={{ textIndent: "2em" }}>
-                {safeConfig.customParagraph.trim()}
-              </p>
+        <ScrollReveal>
+          <section className="py-16 px-6 bg-primary-100">
+            <div className="max-w-2xl mx-auto">
+              <div className="rounded-md bg-white px-8 py-10 shadow-lg text-left">
+                <p className="text-base md:text-lg text-black/90 leading-loose whitespace-pre-line font-serif max-w-xl mx-auto" style={{ textIndent: "2em" }}>
+                  {safeConfig.customParagraph.trim()}
+                </p>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </ScrollReveal>
       )}
-      {show("spotify") && <SpotifyPlaylist config={safeConfig} />}
+      {show("spotify") && (
+        <ScrollReveal>
+          <SpotifyPlaylist config={safeConfig} />
+        </ScrollReveal>
+      )}
       {show("rsvp") && (
-        <RSVPFlow
-          eventSlug={event!.slug}
-          config={safeConfig}
-          guest={guest!}
-          isPublic={!isDedicated}
-        />
+        <ScrollReveal>
+          <RSVPFlow
+            eventSlug={event!.slug}
+            config={safeConfig}
+            guest={guest!}
+            isPublic={!isDedicated}
+          />
+        </ScrollReveal>
       )}
-      <footer className="py-8 flex flex-col items-center justify-center gap-1 border-t border-black/10 bg-white/50">
+      <ScrollReveal>
+        <footer className="py-8 flex flex-col items-center justify-center gap-1 border-t border-black/10 bg-white/50">
         <a
           href="https://dearguest.link"
           target="_blank"
@@ -232,7 +254,8 @@ export default function EventPage() {
           Powered by dearguest.link
         </a>
         <span className="text-[10px] text-slate-400 tracking-wider uppercase">Invitations</span>
-      </footer>
+        </footer>
+      </ScrollReveal>
     </div>
   );
 }
