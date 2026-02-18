@@ -32,7 +32,7 @@ function formatDate(iso: string) {
 }
 
 export default function AdminEarlyAccess() {
-  useDocumentTitle("Early access");
+  useDocumentTitle("Sign up access");
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,7 +48,7 @@ export default function AdminEarlyAccess() {
   }, [fetchLeads]);
 
   return (
-    <AdminLayout title="Early access">
+    <AdminLayout title="Sign up access">
       <p className="text-sm text-slate-600 mb-6">
         Signups from the landing page &quot;Get early access&quot; and modal form. Reach out to them when you&apos;re ready.
       </p>
@@ -59,7 +59,7 @@ export default function AdminEarlyAccess() {
         <AdminEmptyState
           icon={Mail}
           title="No signups yet"
-          description="Early access leads will appear here when someone submits the form on the landing page."
+          description="Sign-up leads will appear here when someone submits the form on the landing page."
         />
       ) : (
         <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">

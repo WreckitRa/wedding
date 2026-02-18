@@ -127,7 +127,7 @@ export function createAdminRouter(db) {
     }
   });
 
-  // ——— Early access leads (from landing page) ———
+  // ——— Early access / sign up access (any admin, including event owners) ———
   router.get("/early-access", (req, res) => {
     const rows = db.prepare(
       "SELECT id, name, email, event_type AS eventType, plan, city, created_at AS createdAt FROM early_access_leads ORDER BY created_at DESC"
@@ -245,8 +245,12 @@ export function createAdminRouter(db) {
     if (!event) return res.status(404).json({ error: "Event not found" });
     const guests = db.prepare("SELECT COUNT(*) AS c FROM guests WHERE event_id = ?").get(event.id);
     const rsvps = db.prepare("SELECT COUNT(*) AS c FROM rsvps WHERE event_id = ?").get(event.id);
+    const coming = db.prepare(
+      `SELECT COALESCE(SUM(1 + CASE WHEN COALESCE(TRIM(partner_name), '') != '' THEN 1 ELSE 0 END + COALESCE(extra_guests, 0)), 0) AS c
+       FROM rsvps WHERE event_id = ? AND attendance = 'yes'`
+    ).get(event.id);
     const config = typeof event.config === "string" ? JSON.parse(event.config) : event.config;
-    const out = { ...event, config, guestCount: guests.c, rsvpCount: rsvps.c };
+    const out = { ...event, config, guestCount: guests.c, rsvpCount: rsvps.c, comingCount: Number(coming?.c ?? 0) };
     if (req.user.role === "main_admin") {
       const ownerId = event.owner_id || event.created_by;
       if (ownerId) {
@@ -260,20 +264,23 @@ export function createAdminRouter(db) {
     res.json(out);
   });
 
-  // PATCH /api/admin/events/:eventSlug — update event (name, config, or slug)
+  // PATCH /api/admin/events/:eventSlug — update event. name/slug: main_admin only; config: any event admin.
   router.patch("/events/:eventSlug", requireEventAdmin(db), (req, res) => {
     const eventId = req.eventId;
     const { name, config, slug: newSlug, confirmRemoveGuestsAndRsvps } = req.body || {};
+    const isMainAdmin = req.user.role === "main_admin";
 
     if (config !== undefined) {
       const configStr = typeof config === "object" ? JSON.stringify(config) : config;
       db.prepare("UPDATE events SET config = ? WHERE id = ?").run(configStr, eventId);
     }
     if (name !== undefined) {
+      if (!isMainAdmin) return res.status(403).json({ error: "Only the system admin can change the event name" });
       db.prepare("UPDATE events SET name = ? WHERE id = ?").run(name, eventId);
     }
 
     if (newSlug !== undefined) {
+      if (!isMainAdmin) return res.status(403).json({ error: "Only the system admin can change the event URL" });
       const normalized = String(newSlug).trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
       if (!normalized || normalized.length < 2) {
         return res.status(400).json({ error: "Slug must be at least 2 characters and only letters, numbers, and hyphens" });

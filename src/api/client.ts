@@ -179,6 +179,7 @@ export async function adminGetEvent(eventSlug: string) {
     config: import("../types/event").EventConfig;
     guestCount: number;
     rsvpCount: number;
+    comingCount: number;
     ownerId?: string;
     ownerEmail?: string;
   }>(`/api/admin/events/${encodeURIComponent(eventSlug)}`);

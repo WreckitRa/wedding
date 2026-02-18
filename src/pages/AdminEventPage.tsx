@@ -12,6 +12,11 @@ import {
   Check,
   X,
   ExternalLink,
+  ChevronDown,
+  ChevronRight,
+  Music,
+  Heart,
+  MessageSquare,
 } from "lucide-react";
 import {
   adminGetEvent,
@@ -45,10 +50,15 @@ type GuestRow = Guest & { token: string; firstOpenedAt?: string | null; hasRsvp:
 
 type RsvpRow = {
   id: string;
+  guest_id: string | null;
   guest_name: string;
   partner_name: string | null;
   attendance: string;
   extra_guests: number;
+  song1: string | null;
+  song2: string | null;
+  reaction: string | null;
+  message: string | null;
   submission_time: string;
 };
 
@@ -62,6 +72,7 @@ export default function AdminEventPage() {
     config: EventConfig;
     guestCount: number;
     rsvpCount: number;
+    comingCount: number;
     ownerId?: string;
     ownerEmail?: string;
   } | null>(null);
@@ -98,6 +109,8 @@ export default function AdminEventPage() {
   const [ownerSaving, setOwnerSaving] = useState(false);
   const [ownerError, setOwnerError] = useState<string | null>(null);
   const [ownerSuccess, setOwnerSuccess] = useState(false);
+  const [eventNameSlugExpanded, setEventNameSlugExpanded] = useState(false);
+  const [viewSubmission, setViewSubmission] = useState<{ guest: GuestRow } | { rsvp: RsvpRow } | null>(null);
 
   const navigate = useNavigate();
   const isMainAdmin = getAdminUser()?.role === "main_admin";
@@ -119,6 +132,7 @@ export default function AdminEventPage() {
           config: e.config ?? {},
           guestCount: e.guestCount,
           rsvpCount: e.rsvpCount,
+          comingCount: e.comingCount ?? 0,
           ownerId: e.ownerId,
           ownerEmail: e.ownerEmail,
         });
@@ -435,8 +449,8 @@ export default function AdminEventPage() {
             <MessageCircle className="w-6 h-6 text-emerald-600" />
           </div>
           <div>
-            <p className="text-2xl font-semibold text-slate-900 tabular-nums">{event.rsvpCount}</p>
-            <p className="text-sm text-slate-500">RSVPs</p>
+            <p className="text-2xl font-semibold text-slate-900 tabular-nums">{event.comingCount}</p>
+            <p className="text-sm text-slate-500">Coming</p>
           </div>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 flex items-center gap-4">
@@ -478,31 +492,56 @@ export default function AdminEventPage() {
       <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6 mb-6 sm:mb-8">
         <h3 className="text-sm font-semibold text-slate-900 mb-3">Event links</h3>
         <div className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-slate-700 mb-2">Event name</label>
-            <p className="text-xs text-slate-500 mb-2">Shown in the admin list and on the invitation (e.g. couple names or event title).</p>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-              <input
-                type="text"
-                value={nameEditValue}
-                onChange={(e) => { setNameEditValue(e.target.value); setNameError(null); }}
-                onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
-                placeholder="e.g. Raphael & Christine"
-                className={INPUT_CLASS + " flex-1 min-w-0"}
-              />
-              <button
-                type="button"
-                onClick={handleSaveName}
-                disabled={nameSaving || nameEditValue.trim() === event.name}
-                className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 min-h-[44px]"
-              >
-                {nameSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save name"}
-              </button>
-            </div>
-            {nameError && <p className="text-sm text-red-600 mt-1">{nameError}</p>}
-          </div>
-          <div>
-            <p className="text-xs text-slate-500 mb-2">Event URL — change only if you haven’t shared the link yet, or you’re okay removing all guests and RSVPs</p>
+          <div className="rounded-lg border border-slate-200 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setEventNameSlugExpanded((e) => !e)}
+              className="w-full flex items-center justify-between gap-2 px-3 py-2.5 sm:px-4 sm:py-3 text-left bg-slate-50/80 hover:bg-slate-100/80 transition-colors min-h-[44px]"
+              aria-expanded={eventNameSlugExpanded}
+            >
+              <span className="text-sm font-medium text-slate-800">Event name &amp; URL</span>
+              <span className="flex items-center gap-2 shrink-0">
+                {!eventNameSlugExpanded && event && (
+                  <span className="text-xs text-slate-500 truncate max-w-[180px] sm:max-w-none" title={`${event.name} · e/${event.slug}`}>
+                    {event.name} · e/{event.slug}
+                  </span>
+                )}
+                {eventNameSlugExpanded ? (
+                  <ChevronDown className="w-4 h-4 text-slate-500" aria-hidden />
+                ) : (
+                  <ChevronRight className="w-4 h-4 text-slate-500" aria-hidden />
+                )}
+              </span>
+            </button>
+            {eventNameSlugExpanded && (
+              <div className="p-3 sm:p-4 pt-0 border-t border-slate-200 space-y-4">
+                {isMainAdmin ? (
+                  <>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-2">Event name</label>
+                      <p className="text-xs text-slate-500 mb-2">Shown in the admin list and on the invitation (e.g. couple names or event title).</p>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                        <input
+                          type="text"
+                          value={nameEditValue}
+                          onChange={(e) => { setNameEditValue(e.target.value); setNameError(null); }}
+                          onKeyDown={(e) => e.key === "Enter" && handleSaveName()}
+                          placeholder="e.g. Raphael & Christine"
+                          className={INPUT_CLASS + " flex-1 min-w-0"}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSaveName}
+                          disabled={nameSaving || nameEditValue.trim() === event.name}
+                          className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 min-h-[44px]"
+                        >
+                          {nameSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save name"}
+                        </button>
+                      </div>
+                      {nameError && <p className="text-sm text-red-600 mt-1">{nameError}</p>}
+                    </div>
+                    <div>
+                      <p className="text-xs text-slate-500 mb-2">Event URL — change only if you haven’t shared the link yet, or you’re okay removing all guests and RSVPs</p>
             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               <span className="text-sm text-slate-500 shrink-0">{baseUrl}e/</span>
               <input
@@ -524,6 +563,23 @@ export default function AdminEventPage() {
               </button>
             </div>
             {slugError && <p className="text-sm text-red-600 mt-1">{slugError}</p>}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">Event name</label>
+                      <p className="text-sm text-slate-900">{event.name}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-700 mb-1">Event URL</label>
+                      <p className="text-sm font-mono text-slate-900 break-all">{baseUrl}e/{event.slug}</p>
+                    </div>
+                    <p className="text-xs text-slate-500">Only the system admin can change the event name or URL.</p>
+                  </>
+                )}
+              </div>
+            )}
           </div>
           <div>
             <p className="text-xs text-slate-500 mb-2">Public link — anyone can open and enter their name to RSVP</p>
@@ -618,6 +674,120 @@ export default function AdminEventPage() {
           </div>
         </div>
       )}
+
+      {/* Guest submission modal — what the guest sent (songs, message, reaction) */}
+      {viewSubmission && (() => {
+        const isGuest = "guest" in viewSubmission;
+        const guest = isGuest ? viewSubmission.guest : null;
+        const rsvpFromPayload = !isGuest ? viewSubmission.rsvp : null;
+        const rsvp = rsvpFromPayload ?? (guest ? rsvps.find((r) => r.guest_id === guest.id) : null);
+        const titleName = isGuest && guest ? guest.name : rsvpFromPayload?.guest_name ?? "Guest";
+        const titlePartner = isGuest && guest ? guest.partnerName : rsvpFromPayload?.partner_name;
+        const inviteToken = isGuest && guest ? guest.token : null;
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm"
+            onClick={() => setViewSubmission(null)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="guest-submission-title"
+          >
+            <div
+              className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-lg w-full max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-5 sm:p-6 border-b border-slate-200 flex items-start justify-between gap-3">
+                <h3 id="guest-submission-title" className="text-lg font-semibold text-slate-900">
+                  {titleName}
+                  {titlePartner && (
+                    <span className="text-slate-500 font-normal"> + {titlePartner}</span>
+                  )}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setViewSubmission(null)}
+                  className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                  aria-label="Close"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="p-5 sm:p-6 space-y-4">
+                {!rsvp ? (
+                  <>
+                    <p className="text-slate-500">Hasn&apos;t responded yet.</p>
+                    {inviteToken && (
+                      <a
+                        href={`${baseUrl}e/${eventSlug}/invite/${inviteToken}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Open invite link
+                      </a>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-sm font-medium ${
+                          rsvp.attendance === "yes" ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        <Check className="w-4 h-4" />
+                        {rsvp.attendance === "yes" ? "Coming" : "Not coming"}
+                      </span>
+                      {rsvp.attendance === "yes" && (rsvp.partner_name || rsvp.extra_guests > 0) && (
+                        <span className="text-sm text-slate-500">
+                          {rsvp.partner_name && "+1 partner"}
+                          {rsvp.partner_name && rsvp.extra_guests > 0 && " · "}
+                          {rsvp.extra_guests > 0 && `+${rsvp.extra_guests} extra`}
+                        </span>
+                      )}
+                    </div>
+                    {rsvp.reaction && (
+                      <div className="flex items-center gap-2">
+                        <Heart className="w-5 h-5 text-rose-400 shrink-0" />
+                        <span className="text-2xl" role="img" aria-label="Reaction">
+                          {rsvp.reaction}
+                        </span>
+                      </div>
+                    )}
+                    {(rsvp.song1 || rsvp.song2) && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                          <Music className="w-4 h-4" />
+                          Song requests
+                        </p>
+                        <ul className="space-y-1.5 text-slate-800">
+                          {rsvp.song1 && <li className="flex items-start gap-2">{rsvp.song1}</li>}
+                          {rsvp.song2 && <li className="flex items-start gap-2">{rsvp.song2}</li>}
+                        </ul>
+                      </div>
+                    )}
+                    {rsvp.message && (
+                      <div className="space-y-1">
+                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                          <MessageSquare className="w-4 h-4" />
+                          Message
+                        </p>
+                        <p className="text-slate-800 whitespace-pre-wrap rounded-lg bg-slate-50 p-3 text-sm">
+                          {rsvp.message}
+                        </p>
+                      </div>
+                    )}
+                    <p className="text-xs text-slate-400 pt-1">
+                      Submitted {new Date(rsvp.submission_time).toLocaleString()}
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
@@ -774,16 +944,15 @@ export default function AdminEventPage() {
                         </td>
                         <td className="px-4 py-3 text-right">
                           <div className="flex items-center justify-end gap-1 flex-wrap">
-                            <a
-                              href={`${baseUrl}e/${eventSlug}/invite/${g.token}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <button
+                              type="button"
+                              onClick={() => setViewSubmission({ guest: g })}
                               className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                              title="View invite (open in new tab)"
+                              title="View guest response"
                             >
-                              <ExternalLink className="w-4 h-4" />
+                              <MessageSquare className="w-4 h-4" />
                               View
-                            </a>
+                            </button>
                             <CopyButton
                               text={`${baseUrl}e/${eventSlug}/invite/${g.token}`}
                               label="Copy"
@@ -838,6 +1007,7 @@ export default function AdminEventPage() {
                       <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Guest</th>
                       <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Attendance</th>
                       <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Submitted</th>
+                      <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -861,6 +1031,17 @@ export default function AdminEventPage() {
                         </td>
                         <td className="px-4 py-3 text-slate-500">
                           {new Date(r.submission_time).toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setViewSubmission({ rsvp: r })}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                            title="View full response"
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                            View
+                          </button>
                         </td>
                       </tr>
                     ))}

@@ -55,9 +55,10 @@ function SidebarContent({
           to="/admin/early-access"
           onClick={onNavClick}
           className={linkClass(isEarlyAccess)}
+          title="Signups from the landing page"
         >
           <Mail className="w-4 h-4 shrink-0" />
-          Early access
+          Sign up access
         </Link>
       </nav>
       <div className="p-3 border-t border-slate-700/50">
