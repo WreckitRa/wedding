@@ -7,14 +7,38 @@ interface WeddingInfoProps {
   config: EventConfig;
 }
 
+/** Extract place_id from a saved map URL (place_id:xxx, q=place_id:xxx, or query_place_id=xxx) */
+function getPlaceIdFromMapUrl(url: string): string | null {
+  if (!url?.trim()) return null;
+  try {
+    const decoded = decodeURIComponent(url);
+    const placeIdMatch =
+      decoded.match(/query_place_id=([^&\s]+)/i) ||
+      decoded.match(/[?&]q=place_id:([^&\s]+)/i) ||
+      decoded.match(/place_id:([^&\s/]+)/i);
+    return placeIdMatch ? placeIdMatch[1].trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Open Google Maps in directions mode. Uses place_id when present, otherwise opens the URL as-is. */
+function getDirectionsUrl(storedMapUrl: string): string {
+  const placeId = getPlaceIdFromMapUrl(storedMapUrl);
+  if (placeId) {
+    return `https://www.google.com/maps/dir/?api=1&destination=place_id:${encodeURIComponent(placeId)}`;
+  }
+  return storedMapUrl;
+}
+
 const WeddingInfo: React.FC<WeddingInfoProps> = ({ config }) => {
   const handleAddToCalendar = () => {
     const calendarUrl = generateCalendarLink(config);
     window.open(calendarUrl, "_blank");
   };
 
-  const handleOpenMaps = (address: string) => {
-    window.open(address, "_blank");
+  const handleOpenMaps = (mapUrl: string) => {
+    window.open(getDirectionsUrl(mapUrl), "_blank");
   };
 
   return (

@@ -121,16 +121,12 @@
   }
 }
 
-/* Scroll reveal: classy section entrance for wedding invitation */
+/* Scroll reveal: sections slide up into place; no opacity so backgrounds stay solid */
 .scroll-reveal {
-  opacity: 0;
   transform: translateY(28px);
-  transition:
-    opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .scroll-reveal.scroll-reveal-visible {
-  opacity: 1;
   transform: translateY(0);
 }

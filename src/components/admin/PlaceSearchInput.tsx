@@ -4,9 +4,9 @@ import { MapPin } from "lucide-react";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as string | undefined;
 
-/** Build a shareable Google Maps URL from a place_id */
+/** Build a shareable Google Maps URL from a place_id (works on desktop and mobile) */
 function placeIdToUrl(placeId: string): string {
-  return `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}`;
+  return `https://www.google.com/maps/search/?api=1&query_place_id=${encodeURIComponent(placeId)}`;
 }
 
 /** Load Google Maps script with Places library */

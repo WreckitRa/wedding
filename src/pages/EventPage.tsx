@@ -10,7 +10,8 @@ import WeddingInfo from "../components/WeddingInfo";
 import WelcomeSection from "../components/WelcomeSection";
 import { useEvent } from "../hooks/useEvent";
 import { useEventGuest } from "../hooks/useEventGuest";
-import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useMetaTags } from "../hooks/useMetaTags";
+import { getPageTitle } from "../utils/app";
 import type { EventConfig } from "../types/event";
 import type { Guest } from "../types/event";
 
@@ -107,7 +108,14 @@ export default function EventPage() {
   const loading = eventLoading || (isDedicated && !isPreviewMode && guestLoading);
   const error = eventError || (isDedicated && !isPreviewMode && guestError);
   const openedRecorded = useRef(false);
-  useDocumentTitle(event?.config?.coupleNames ?? event?.name);
+  const eventTitle = event?.config?.coupleNames ?? event?.name;
+  const metaUrl =
+    typeof window !== "undefined" ? window.location.href : undefined;
+  useMetaTags(
+    eventTitle ? getPageTitle(eventTitle) : "",
+    eventTitle ? "You're invited — view your invitation and RSVP." : "",
+    metaUrl ? { url: metaUrl } : undefined
+  );
   useEffect(() => {
     if (isPreviewMode) return;
     if (eventSlug && token && apiGuest && !openedRecorded.current) {

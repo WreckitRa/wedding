@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { submitEarlyAccess } from "../api/client";
+import { useMetaTags } from "../hooks/useMetaTags";
+import { getBaseUrl } from "../utils/app";
 import "./LandingPage.css";
+
+const LANDING_TITLE = "DearGuest | Your guestlist runs itself";
+const LANDING_DESCRIPTION =
+  "One link. Guests RSVP, you see who opened and who's pending. Smart reminders by WhatsApp and email—no chasing. Built for weddings and events.";
 
 export default function LandingPage() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -29,6 +35,10 @@ export default function LandingPage() {
     setModalPlan(plan || "");
     setModalOpen(true);
   };
+
+  useMetaTags(LANDING_TITLE, LANDING_DESCRIPTION, {
+    url: getBaseUrl().replace(/\/$/, "") || undefined,
+  });
 
   useEffect(() => {
     const bars = [openedBarRef, yesBarRef, pendingBarRef, dupBarRef];
@@ -182,12 +192,11 @@ export default function LandingPage() {
             <div className="reveal">
               <div className="badge-row">
                 <span className="dot" aria-hidden="true" />
-                <span>Limited early access — launch offer for your first event</span>
+                <span>Early access — launch offer</span>
               </div>
               <h1>Your guestlist runs itself.</h1>
               <p className="sub">
-                Collect RSVPs, prevent duplicates, and see who opened and who’s pending—without chasing anyone.
-                Built for weddings, parties, and events where the headcount actually matters.
+                One link. Guests RSVP, you see who opened and who's pending. Smart reminders by WhatsApp and email—no chasing.
               </p>
               <div className="heroCtas">
                 <button type="button" className="btn primary" onClick={() => openModal()}>
@@ -197,25 +206,12 @@ export default function LandingPage() {
                   See how it works
                 </button>
               </div>
-              <p className="micro">No credit card required · Guests RSVP from a link, no app needed</p>
-              <div className="heroSocialProof">
-                <div className="avatars" aria-hidden="true">
-                  <span>J</span>
-                  <span>M</span>
-                  <span>S</span>
-                  <span>+</span>
-                </div>
-                <p className="copy">
-                  <strong>Trusted by event organizers</strong> for weddings, nightlife, and private events.
-                </p>
-              </div>
+              <p className="micro">No credit card · Guests use a link, no app</p>
               <div className="strip">
                 <div className="logos" aria-label="Use cases">
                   <span className="tag">Weddings</span>
-                  <span className="tag">Nightlife</span>
-                  <span className="tag">Corporate</span>
+                  <span className="tag">Parties</span>
                   <span className="tag">Private events</span>
-                  <span className="tag">Birthdays</span>
                 </div>
               </div>
             </div>
@@ -417,31 +413,22 @@ export default function LandingPage() {
         <section id="how">
           <div className="sectionTitle reveal center">
             <h2>Set it up once. Let it run.</h2>
-            <p className="lead">Three steps. No spreadsheets. No chasing.</p>
           </div>
           <div className="steps">
             <div className="step reveal">
               <div className="num">1</div>
               <h3>Create your event</h3>
-              <p>
-                Add the essentials. DearGuest helps you write a clean invitation and produces a shareable link
-                instantly.
-              </p>
+              <p>Add details, get a shareable invitation link.</p>
             </div>
             <div className="step reveal">
               <div className="num">2</div>
-              <h3>Share anywhere</h3>
-              <p>
-                Send on WhatsApp, email, Instagram bio, or group chats. Guests RSVP in seconds with +1 rules if you
-                want.
-              </p>
+              <h3>Share the link</h3>
+              <p>WhatsApp, email, or anywhere. Guests RSVP in seconds.</p>
             </div>
             <div className="step reveal">
               <div className="num">3</div>
               <h3>Watch the list fill itself</h3>
-              <p>
-                DearGuest nudges guests automatically and updates your dashboard with insights, so you stay confident.
-              </p>
+              <p>Reminders go out automatically. Dashboard shows who's in, who's pending.</p>
             </div>
           </div>
         </section>
@@ -554,10 +541,10 @@ export default function LandingPage() {
             <div>
               <h3>Stop chasing guests. Start hosting.</h3>
               <p>
-                Join early access for a launch offer on your first event—and we’ll help you get your first invite live in minutes.
+                Get early access and a launch offer. We'll help you get your first invite live in minutes.
               </p>
             </div>
-            <form className="form" onSubmit={handleLeadSubmit}>
+            <form className="form form-cta" onSubmit={handleLeadSubmit}>
               <input className="input" type="text" name="name" placeholder="Your name" autoComplete="name" required />
               <input className="input" type="email" name="email" placeholder="Email" autoComplete="email" required />
               <button className="btn primary" type="submit" disabled={submitting}>

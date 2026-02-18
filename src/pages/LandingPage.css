@@ -931,16 +931,35 @@
   .landing-page .cta .form {
     flex-direction: column;
     width: 100%;
+    gap: 10px;
   }
 
   .landing-page .cta .form .input {
     width: 100%;
     min-width: 0;
+    padding: 10px 14px;
+    font-size: 0.875rem;
+    min-height: 0;
   }
 
   .landing-page .cta .form .btn {
     width: 100%;
-    min-height: 48px;
+    min-height: 44px;
+    padding: 12px 18px;
+    font-size: 0.9375rem;
+  }
+}
+
+/* Tighter CTA block on small screens */
+@media (max-width: 520px) {
+  .landing-page .cta {
+    padding: 28px 24px;
+  }
+  .landing-page .cta h3 {
+    font-size: 1.375rem;
+  }
+  .landing-page .cta p {
+    font-size: 0.9375rem;
   }
 }
 
