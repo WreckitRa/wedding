@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import {
   Users,
   MessageCircle,
@@ -82,7 +82,12 @@ export default function AdminEventPage() {
   const [draftOffer, setDraftOffer] = useState<EditDraft | null>(null);
   const draftCheckDone = useRef(false);
   const [previewKey, setPreviewKey] = useState(0);
+  const [slugEditValue, setSlugEditValue] = useState("");
+  const [slugSaving, setSlugSaving] = useState(false);
+  const [slugError, setSlugError] = useState<string | null>(null);
+  const [slugConfirmModal, setSlugConfirmModal] = useState<{ newSlug: string; guestCount: number; rsvpCount: number } | null>(null);
 
+  const navigate = useNavigate();
   const baseUrl = getBaseUrl();
   useDocumentTitle(event?.name ?? "Event");
 
@@ -113,6 +118,10 @@ export default function AdminEventPage() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (event?.slug != null) setSlugEditValue(event.slug);
+  }, [event?.slug]);
 
   useEffect(() => {
     draftCheckDone.current = false;
@@ -160,6 +169,63 @@ export default function AdminEventPage() {
     setTab(newTab);
     setSearchParams(newTab === "guests" ? {} : { tab: newTab }, { replace: true });
   }, [setSearchParams]);
+
+  const normalizeSlug = (s: string) =>
+    s
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9-]/g, "");
+
+  const handleSaveSlug = useCallback(async () => {
+    if (!eventSlug || !event) return;
+    const normalized = normalizeSlug(slugEditValue);
+    if (normalized.length < 2) {
+      setSlugError("URL must be at least 2 characters (letters, numbers, hyphens only)");
+      return;
+    }
+    if (normalized === event.slug) {
+      setSlugError(null);
+      return;
+    }
+    setSlugError(null);
+    setSlugSaving(true);
+    try {
+      const result = await adminUpdateEvent(eventSlug, { slug: normalized });
+      setSlugConfirmModal(null);
+      if (result.slug) {
+        navigate(`/admin/events/${result.slug}${tab !== "guests" ? `?tab=${tab}` : ""}`, { replace: true });
+      }
+    } catch (err: unknown) {
+      const body = (err as Error & { body?: { requireConfirm?: boolean; guestCount?: number; rsvpCount?: number; error?: string } })?.body;
+      if (body?.requireConfirm && typeof body.guestCount === "number" && typeof body.rsvpCount === "number") {
+        setSlugConfirmModal({ newSlug: normalized, guestCount: body.guestCount, rsvpCount: body.rsvpCount });
+      } else {
+        setSlugError(body?.error ?? (err instanceof Error ? err.message : "Failed to update URL"));
+      }
+    } finally {
+      setSlugSaving(false);
+    }
+  }, [eventSlug, event, slugEditValue, tab, navigate]);
+
+  const handleConfirmSlugChange = useCallback(async () => {
+    if (!eventSlug || !slugConfirmModal) return;
+    setSlugSaving(true);
+    try {
+      const result = await adminUpdateEvent(eventSlug, {
+        slug: slugConfirmModal.newSlug,
+        confirmRemoveGuestsAndRsvps: true,
+      });
+      setSlugConfirmModal(null);
+      if (result.slug) {
+        navigate(`/admin/events/${result.slug}${tab !== "guests" ? `?tab=${tab}` : ""}`, { replace: true });
+      }
+    } catch (err) {
+      setSlugError(err instanceof Error ? err.message : "Failed to update URL");
+    } finally {
+      setSlugSaving(false);
+    }
+  }, [eventSlug, slugConfirmModal, tab, navigate]);
 
   const handleAddGuest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -344,6 +410,30 @@ export default function AdminEventPage() {
         <h3 className="text-sm font-semibold text-slate-900 mb-3">Event links</h3>
         <div className="space-y-4">
           <div>
+            <p className="text-xs text-slate-500 mb-2">Event URL — change only if you haven’t shared the link yet, or you’re okay removing all guests and RSVPs</p>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="text-sm text-slate-500 shrink-0">{baseUrl}e/</span>
+              <input
+                type="text"
+                value={slugEditValue}
+                onChange={(e) => setSlugEditValue(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSaveSlug()}
+                placeholder="event-slug"
+                className={INPUT_CLASS + " flex-1 min-w-0 font-mono text-sm"}
+                spellCheck={false}
+              />
+              <button
+                type="button"
+                onClick={handleSaveSlug}
+                disabled={slugSaving || normalizeSlug(slugEditValue) === event.slug}
+                className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 min-h-[44px]"
+              >
+                {slugSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save URL"}
+              </button>
+            </div>
+            {slugError && <p className="text-sm text-red-600 mt-1">{slugError}</p>}
+          </div>
+          <div>
             <p className="text-xs text-slate-500 mb-2">Public link — anyone can open and enter their name to RSVP</p>
             <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-2">
               <code className="flex-1 min-w-0 px-3 py-2 bg-slate-50 rounded-lg text-sm text-slate-700 break-all">
@@ -357,6 +447,41 @@ export default function AdminEventPage() {
           </p>
         </div>
       </div>
+
+      {/* Confirm slug change (removes guests & RSVPs) */}
+      {slugConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">Change event URL?</h3>
+            <p className="text-sm text-slate-600 mb-4">
+              This event has <strong>{slugConfirmModal.guestCount} guest(s)</strong> and <strong>{slugConfirmModal.rsvpCount} RSVP(s)</strong>.
+              Changing the URL will invalidate all invite links. All guests and RSVPs will be <strong>permanently removed</strong>.
+            </p>
+            <p className="text-sm text-slate-600 mb-4">
+              New URL: <code className="bg-slate-100 px-1.5 py-0.5 rounded">{baseUrl}e/{slugConfirmModal.newSlug}</code>
+            </p>
+            <div className="flex flex-wrap gap-2 justify-end">
+              <button
+                type="button"
+                onClick={() => setSlugConfirmModal(null)}
+                disabled={slugSaving}
+                className="px-4 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-medium hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSlugChange}
+                disabled={slugSaving}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 disabled:opacity-50"
+              >
+                {slugSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                Change URL and remove guests &amp; RSVPs
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">

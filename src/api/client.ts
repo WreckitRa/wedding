@@ -18,7 +18,10 @@ async function request<T>(
   const res = await fetch(url, { ...options, headers });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || res.statusText);
+    const message = err.error || res.statusText;
+    const e = new Error(message) as Error & { body?: Record<string, unknown> };
+    e.body = err;
+    throw e;
   }
   return res.json();
 }
@@ -179,9 +182,17 @@ export async function adminGetEvent(eventSlug: string) {
   }>(`/api/admin/events/${encodeURIComponent(eventSlug)}`);
 }
 
-/** Admin: update event */
-export async function adminUpdateEvent(eventSlug: string, data: { name?: string; config?: import("../types/event").EventConfig }) {
-  return request<{ ok: boolean }>(`/api/admin/events/${encodeURIComponent(eventSlug)}`, {
+/** Admin: update event (slug change with guests/RSVPs requires confirmRemoveGuestsAndRsvps: true) */
+export async function adminUpdateEvent(
+  eventSlug: string,
+  data: {
+    name?: string;
+    config?: import("../types/event").EventConfig;
+    slug?: string;
+    confirmRemoveGuestsAndRsvps?: boolean;
+  }
+) {
+  return request<{ ok: boolean; slug?: string }>(`/api/admin/events/${encodeURIComponent(eventSlug)}`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });

@@ -6,7 +6,9 @@ import path from "path";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.join(__dirname, "..", "data");
 const dbPath = process.env.SQLITE_PATH || path.join(dataDir, "wedding.db");
-if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true });
+// Ensure the directory for the DB file exists (local data dir or e.g. Railway volume path)
+const dbDir = path.dirname(dbPath);
+if (!existsSync(dbDir)) mkdirSync(dbDir, { recursive: true });
 
 const db = new Database(dbPath);
 db.pragma("journal_mode = WAL");

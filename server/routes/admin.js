@@ -254,10 +254,11 @@ export function createAdminRouter(db) {
     });
   });
 
-  // PATCH /api/admin/events/:eventSlug — update event config
+  // PATCH /api/admin/events/:eventSlug — update event (name, config, or slug)
   router.patch("/events/:eventSlug", requireEventAdmin(db), (req, res) => {
     const eventId = req.eventId;
-    const { name, config } = req.body || {};
+    const { name, config, slug: newSlug, confirmRemoveGuestsAndRsvps } = req.body || {};
+
     if (config !== undefined) {
       const configStr = typeof config === "object" ? JSON.stringify(config) : config;
       db.prepare("UPDATE events SET config = ? WHERE id = ?").run(configStr, eventId);
@@ -265,6 +266,38 @@ export function createAdminRouter(db) {
     if (name !== undefined) {
       db.prepare("UPDATE events SET name = ? WHERE id = ?").run(name, eventId);
     }
+
+    if (newSlug !== undefined) {
+      const normalized = String(newSlug).trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+      if (!normalized || normalized.length < 2) {
+        return res.status(400).json({ error: "Slug must be at least 2 characters and only letters, numbers, and hyphens" });
+      }
+      const current = db.prepare("SELECT slug FROM events WHERE id = ?").get(eventId);
+      if (current.slug === normalized) {
+        return res.json({ ok: true });
+      }
+      const existing = db.prepare("SELECT id FROM events WHERE slug = ? AND id != ?").get(normalized, eventId);
+      if (existing) {
+        return res.status(400).json({ error: "That URL is already used by another event" });
+      }
+      const guestCount = db.prepare("SELECT COUNT(*) AS c FROM guests WHERE event_id = ?").get(eventId).c;
+      const rsvpCount = db.prepare("SELECT COUNT(*) AS c FROM rsvps WHERE event_id = ?").get(eventId).c;
+      if (guestCount > 0 || rsvpCount > 0) {
+        if (confirmRemoveGuestsAndRsvps !== true) {
+          return res.status(400).json({
+            error: "Event has guests or RSVPs",
+            requireConfirm: true,
+            guestCount,
+            rsvpCount,
+          });
+        }
+        db.prepare("DELETE FROM rsvps WHERE event_id = ?").run(eventId);
+        db.prepare("DELETE FROM guests WHERE event_id = ?").run(eventId);
+      }
+      db.prepare("UPDATE events SET slug = ? WHERE id = ?").run(normalized, eventId);
+      return res.json({ ok: true, slug: normalized });
+    }
+
     res.json({ ok: true });
   });
 

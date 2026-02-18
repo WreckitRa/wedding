@@ -73,6 +73,16 @@
   gap: 16px;
 }
 
+/* Desktop: nav menu is a horizontal row (links + CTAs) */
+@media (min-width: 961px) {
+  .landing-page .nav-menu {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 28px;
+  }
+}
+
 /* Mobile: hamburger */
 .landing-page .nav-burger {
   display: none;
