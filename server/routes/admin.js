@@ -238,20 +238,26 @@ export function createAdminRouter(db) {
     }
   );
 
-  // GET /api/admin/events/:eventSlug — event detail + guest count, rsvp count
+  // GET /api/admin/events/:eventSlug — event detail + guest count, rsvp count. main_admin also gets ownerId, ownerEmail.
   router.get("/events/:eventSlug", requireEventAdmin(db), (req, res) => {
     const eventId = req.eventId || req.params.eventSlug;
-    const event = db.prepare("SELECT id, slug, name, config, created_at FROM events WHERE id = ? OR slug = ?").get(eventId, eventId);
+    const event = db.prepare("SELECT id, slug, name, config, created_at, owner_id, created_by FROM events WHERE id = ? OR slug = ?").get(eventId, eventId);
     if (!event) return res.status(404).json({ error: "Event not found" });
     const guests = db.prepare("SELECT COUNT(*) AS c FROM guests WHERE event_id = ?").get(event.id);
     const rsvps = db.prepare("SELECT COUNT(*) AS c FROM rsvps WHERE event_id = ?").get(event.id);
     const config = typeof event.config === "string" ? JSON.parse(event.config) : event.config;
-    res.json({
-      ...event,
-      config,
-      guestCount: guests.c,
-      rsvpCount: rsvps.c,
-    });
+    const out = { ...event, config, guestCount: guests.c, rsvpCount: rsvps.c };
+    if (req.user.role === "main_admin") {
+      const ownerId = event.owner_id || event.created_by;
+      if (ownerId) {
+        const owner = db.prepare("SELECT id, email FROM users WHERE id = ?").get(ownerId);
+        if (owner) {
+          out.ownerId = owner.id;
+          out.ownerEmail = owner.email;
+        }
+      }
+    }
+    res.json(out);
   });
 
   // PATCH /api/admin/events/:eventSlug — update event (name, config, or slug)
@@ -298,6 +304,29 @@ export function createAdminRouter(db) {
       return res.json({ ok: true, slug: normalized });
     }
 
+    res.json({ ok: true });
+  });
+
+  // PATCH /api/admin/events/:eventSlug/owner — update event owner login (main_admin only). Body: { email?, newPassword? }
+  router.patch("/events/:eventSlug/owner", requireMainAdmin, async (req, res) => {
+    const eventId = req.params.eventSlug;
+    const event = db.prepare("SELECT id, owner_id, created_by FROM events WHERE id = ? OR slug = ?").get(eventId, eventId);
+    if (!event) return res.status(404).json({ error: "Event not found" });
+    const ownerId = event.owner_id || event.created_by;
+    if (!ownerId) return res.status(400).json({ error: "Event has no owner" });
+    const { email: newEmail, newPassword } = req.body || {};
+    if (!newEmail?.trim() && !newPassword) {
+      return res.status(400).json({ error: "Provide email and/or newPassword to update" });
+    }
+    if (newEmail?.trim()) {
+      const existing = db.prepare("SELECT id FROM users WHERE email = ? AND id != ?").get(newEmail.trim(), ownerId);
+      if (existing) return res.status(409).json({ error: "That email is already in use" });
+      db.prepare("UPDATE users SET email = ? WHERE id = ?").run(newEmail.trim(), ownerId);
+    }
+    if (newPassword) {
+      const hash = await bcrypt.hash(newPassword, 10);
+      db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(hash, ownerId);
+    }
     res.json({ ok: true });
   });
 

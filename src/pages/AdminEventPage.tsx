@@ -21,6 +21,8 @@ import {
   adminDeleteGuest,
   adminUpdateGuest,
   adminUpdateEvent,
+  adminUpdateEventOwner,
+  getAdminUser,
 } from "../api/client";
 import type { Guest } from "../types/event";
 import type { EventConfig } from "../types/event";
@@ -60,6 +62,8 @@ export default function AdminEventPage() {
     config: EventConfig;
     guestCount: number;
     rsvpCount: number;
+    ownerId?: string;
+    ownerEmail?: string;
   } | null>(null);
   const [invitationConfig, setInvitationConfig] = useState<EventConfig>({});
   const [guests, setGuests] = useState<GuestRow[]>([]);
@@ -89,8 +93,14 @@ export default function AdminEventPage() {
   const [nameEditValue, setNameEditValue] = useState("");
   const [nameSaving, setNameSaving] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
+  const [ownerEmailEdit, setOwnerEmailEdit] = useState("");
+  const [ownerPasswordEdit, setOwnerPasswordEdit] = useState("");
+  const [ownerSaving, setOwnerSaving] = useState(false);
+  const [ownerError, setOwnerError] = useState<string | null>(null);
+  const [ownerSuccess, setOwnerSuccess] = useState(false);
 
   const navigate = useNavigate();
+  const isMainAdmin = getAdminUser()?.role === "main_admin";
   const baseUrl = getBaseUrl();
   useDocumentTitle(event?.name ?? "Event");
 
@@ -109,6 +119,8 @@ export default function AdminEventPage() {
           config: e.config ?? {},
           guestCount: e.guestCount,
           rsvpCount: e.rsvpCount,
+          ownerId: e.ownerId,
+          ownerEmail: e.ownerEmail,
         });
         setInvitationConfig(e.config ?? {});
         setGuests(g);
@@ -125,7 +137,8 @@ export default function AdminEventPage() {
   useEffect(() => {
     if (event?.slug != null) setSlugEditValue(event.slug);
     if (event?.name != null) setNameEditValue(event.name);
-  }, [event?.slug, event?.name]);
+    if (event?.ownerEmail != null) setOwnerEmailEdit(event.ownerEmail);
+  }, [event?.slug, event?.name, event?.ownerEmail]);
 
   useEffect(() => {
     draftCheckDone.current = false;
@@ -235,6 +248,34 @@ export default function AdminEventPage() {
       setNameSaving(false);
     }
   }, [eventSlug, event, nameEditValue]);
+
+  const handleUpdateOwner = useCallback(async () => {
+    if (!eventSlug || !event) return;
+    const email = ownerEmailEdit.trim();
+    const password = ownerPasswordEdit.trim();
+    if (!email && !password) {
+      setOwnerError("Enter a new email and/or password");
+      return;
+    }
+    setOwnerError(null);
+    setOwnerSuccess(false);
+    setOwnerSaving(true);
+    try {
+      await adminUpdateEventOwner(eventSlug, {
+        ...(email ? { email } : {}),
+        ...(password ? { newPassword: password } : {}),
+      });
+      setOwnerPasswordEdit("");
+      setOwnerSuccess(true);
+      if (email) setEvent((prev) => (prev ? { ...prev, ownerEmail: email } : null));
+      setTimeout(() => setOwnerSuccess(false), 3000);
+    } catch (err: unknown) {
+      const body = (err as Error & { body?: { error?: string } })?.body;
+      setOwnerError(body?.error ?? (err instanceof Error ? err.message : "Failed to update login"));
+    } finally {
+      setOwnerSaving(false);
+    }
+  }, [eventSlug, event, ownerEmailEdit, ownerPasswordEdit]);
 
   const handleConfirmSlugChange = useCallback(async () => {
     if (!eventSlug || !slugConfirmModal) return;
@@ -496,6 +537,50 @@ export default function AdminEventPage() {
           <p className="text-xs text-slate-500">
             Add guests in the Guests tab to generate unique invite links for each person.
           </p>
+          {isMainAdmin && (event?.ownerId ?? event?.ownerEmail) && (
+            <div className="pt-4 mt-4 border-t border-slate-200">
+              <label className="block text-xs font-medium text-slate-700 mb-2">Event owner login</label>
+              <p className="text-xs text-slate-500 mb-3">Update the email and/or password the event owner uses to sign in at /admin.</p>
+              <div className="flex flex-col gap-3">
+                <div>
+                  <input
+                    type="email"
+                    value={ownerEmailEdit}
+                    onChange={(e) => { setOwnerEmailEdit(e.target.value); setOwnerError(null); }}
+                    placeholder="owner@example.com"
+                    className={INPUT_CLASS + " w-full max-w-xs"}
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Leave blank to keep current email</p>
+                </div>
+                <div>
+                  <input
+                    type="password"
+                    value={ownerPasswordEdit}
+                    onChange={(e) => { setOwnerPasswordEdit(e.target.value); setOwnerError(null); }}
+                    placeholder="New password"
+                    autoComplete="new-password"
+                    className={INPUT_CLASS + " w-full max-w-xs"}
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Leave blank to keep current password</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleUpdateOwner}
+                    disabled={
+                      ownerSaving ||
+                      ((!ownerEmailEdit.trim() || ownerEmailEdit.trim() === event?.ownerEmail) && !ownerPasswordEdit.trim())
+                    }
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 disabled:opacity-50 min-h-[44px]"
+                  >
+                    {ownerSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save login"}
+                  </button>
+                  {ownerSuccess && <span className="text-sm text-emerald-600">Saved.</span>}
+                </div>
+                {ownerError && <p className="text-sm text-red-600">{ownerError}</p>}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

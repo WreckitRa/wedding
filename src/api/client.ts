@@ -170,7 +170,7 @@ export async function adminCreateEvent(data: {
   });
 }
 
-/** Admin: get event detail */
+/** Admin: get event detail. main_admin also receives ownerId, ownerEmail. */
 export async function adminGetEvent(eventSlug: string) {
   return request<{
     id: string;
@@ -179,6 +179,8 @@ export async function adminGetEvent(eventSlug: string) {
     config: import("../types/event").EventConfig;
     guestCount: number;
     rsvpCount: number;
+    ownerId?: string;
+    ownerEmail?: string;
   }>(`/api/admin/events/${encodeURIComponent(eventSlug)}`);
 }
 
@@ -193,6 +195,17 @@ export async function adminUpdateEvent(
   }
 ) {
   return request<{ ok: boolean; slug?: string }>(`/api/admin/events/${encodeURIComponent(eventSlug)}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+/** Admin: update event owner login (main_admin only). Provide email and/or newPassword. */
+export async function adminUpdateEventOwner(
+  eventSlug: string,
+  data: { email?: string; newPassword?: string }
+) {
+  return request<{ ok: boolean }>(`/api/admin/events/${encodeURIComponent(eventSlug)}/owner`, {
     method: "PATCH",
     body: JSON.stringify(data),
   });
