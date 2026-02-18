@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { adminListEarlyAccess } from "../api/client";
+import { useNavigate } from "react-router-dom";
+import { adminListEarlyAccess, getAdminUser } from "../api/client";
 import AdminLayout from "../components/admin/AdminLayout";
 import AdminEmptyState from "../components/admin/AdminEmptyState";
 import { AdminTableSkeleton } from "../components/admin/AdminPageLoader";
@@ -33,8 +34,15 @@ function formatDate(iso: string) {
 
 export default function AdminEarlyAccess() {
   useDocumentTitle("Sign up access");
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (getAdminUser()?.role !== "main_admin") {
+      navigate("/admin/events", { replace: true });
+    }
+  }, [navigate]);
 
   const fetchLeads = useCallback(() => {
     adminListEarlyAccess()

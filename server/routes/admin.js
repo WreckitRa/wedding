@@ -127,8 +127,8 @@ export function createAdminRouter(db) {
     }
   });
 
-  // ——— Early access / sign up access (any admin, including event owners) ———
-  router.get("/early-access", (req, res) => {
+  // ——— Early access / sign up access (main_admin only) ———
+  router.get("/early-access", requireMainAdmin, (req, res) => {
     const rows = db.prepare(
       "SELECT id, name, email, event_type AS eventType, plan, city, created_at AS createdAt FROM early_access_leads ORDER BY created_at DESC"
     ).all();

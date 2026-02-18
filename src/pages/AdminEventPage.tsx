@@ -1000,53 +1000,78 @@ export default function AdminEventPage() {
                 description="Responses will appear here once guests submit their RSVP."
               />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50/80">
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Guest</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Attendance</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Submitted</th>
-                      <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {rsvps.map((r) => (
-                      <tr key={r.id} className="hover:bg-slate-50/50">
-                        <td className="px-4 py-3 font-medium text-slate-900">
-                          {r.guest_name}
-                          {r.partner_name ? ` + ${r.partner_name}` : ""}
-                        </td>
-                        <td className="px-4 py-3">
-                          {r.attendance === "yes" ? (
-                            <span className="inline-flex items-center gap-1 text-emerald-600 font-medium">
-                              <Check className="w-4 h-4" /> Yes
-                              {r.extra_guests > 0 && (
-                                <span className="text-slate-500 font-normal">+{r.extra_guests}</span>
-                              )}
+              <div className="space-y-4">
+                {rsvps.map((r) => (
+                  <div
+                    key={r.id}
+                    className="rounded-xl border border-slate-200 bg-slate-50/30 hover:bg-slate-50/60 transition-colors overflow-hidden"
+                  >
+                    <div className="p-4 sm:p-5">
+                      <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
+                        <div>
+                          <p className="font-semibold text-slate-900">
+                            {r.guest_name}
+                            {r.partner_name && <span className="text-slate-600 font-normal"> + {r.partner_name}</span>}
+                          </p>
+                          <div className="flex items-center gap-2 flex-wrap mt-1">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                                r.attendance === "yes" ? "bg-emerald-100 text-emerald-800" : "bg-slate-200 text-slate-600"
+                              }`}
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              {r.attendance === "yes" ? "Coming" : "Not coming"}
                             </span>
-                          ) : (
-                            <span className="text-slate-500">No</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-slate-500">
+                            {r.attendance === "yes" && (r.partner_name || r.extra_guests > 0) && (
+                              <span className="text-xs text-slate-500">
+                                {r.partner_name && "+1 partner"}
+                                {r.partner_name && r.extra_guests > 0 && " · "}
+                                {r.extra_guests > 0 && `+${r.extra_guests} extra`}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-xs text-slate-400 shrink-0">
                           {new Date(r.submission_time).toLocaleString()}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => setViewSubmission({ rsvp: r })}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                            title="View full response"
-                          >
-                            <MessageSquare className="w-4 h-4" />
-                            View
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-4 sm:gap-6">
+                        {r.reaction && (
+                          <div className="flex items-center gap-2">
+                            <Heart className="w-4 h-4 text-rose-400 shrink-0" aria-hidden />
+                            <span className="text-2xl" role="img" aria-label="Reaction">{r.reaction}</span>
+                          </div>
+                        )}
+                        {(r.song1 || r.song2) && (
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                              <Music className="w-3.5 h-3.5" />
+                              Song requests
+                            </p>
+                            <ul className="text-sm text-slate-800 space-y-0.5">
+                              {r.song1 && <li>{r.song1}</li>}
+                              {r.song2 && <li>{r.song2}</li>}
+                            </ul>
+                          </div>
+                        )}
+                        {r.message && (
+                          <div className="min-w-0 flex-1 basis-full sm:basis-0">
+                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                              <MessageSquare className="w-3.5 h-3.5" />
+                              Message
+                            </p>
+                            <p className="text-sm text-slate-800 whitespace-pre-wrap rounded-lg bg-white/80 border border-slate-100 p-3">
+                              {r.message}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      {!(r.reaction || r.song1 || r.song2 || r.message) && (
+                        <p className="text-sm text-slate-400 italic">No message or song requests</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

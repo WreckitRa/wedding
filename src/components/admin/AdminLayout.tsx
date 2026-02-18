@@ -51,15 +51,17 @@ function SidebarContent({
           <LayoutDashboard className="w-4 h-4 shrink-0" />
           Events
         </Link>
-        <Link
-          to="/admin/early-access"
-          onClick={onNavClick}
-          className={linkClass(isEarlyAccess)}
-          title="Signups from the landing page"
-        >
-          <Mail className="w-4 h-4 shrink-0" />
-          Sign up access
-        </Link>
+        {user?.role === "main_admin" && (
+          <Link
+            to="/admin/early-access"
+            onClick={onNavClick}
+            className={linkClass(isEarlyAccess)}
+            title="Signups from the landing page"
+          >
+            <Mail className="w-4 h-4 shrink-0" />
+            Sign up access
+          </Link>
+        )}
       </nav>
       <div className="p-3 border-t border-slate-700/50">
         <div className="px-3 py-2 text-xs text-slate-400 truncate" title={user?.email}>
