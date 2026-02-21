@@ -109,12 +109,16 @@ export default function EventPage() {
   const error = eventError || (isDedicated && !isPreviewMode && guestError);
   const openedRecorded = useRef(false);
   const eventTitle = event?.config?.coupleNames ?? event?.name;
+  const shareMeta = event?.config?.shareMeta;
+  const metaTitle = shareMeta?.title?.trim() || eventTitle;
+  const metaDescription = shareMeta?.description?.trim() || "You're invited — view your invitation and RSVP.";
   const metaUrl =
     typeof window !== "undefined" ? window.location.href : undefined;
+  const metaImage = shareMeta?.image?.trim() || undefined;
   useMetaTags(
-    eventTitle ? getPageTitle(eventTitle) : "",
-    eventTitle ? "You're invited — view your invitation and RSVP." : "",
-    metaUrl ? { url: metaUrl } : undefined
+    metaTitle ? getPageTitle(metaTitle) : "",
+    metaTitle ? metaDescription : "",
+    { url: metaUrl, image: metaImage }
   );
   useEffect(() => {
     if (isPreviewMode) return;

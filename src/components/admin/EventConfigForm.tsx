@@ -136,6 +136,17 @@ export default function EventConfigForm({ config, onChange, eventSlug }: EventCo
     [config, onChange]
   );
 
+  const setShareMeta = useCallback(
+    (field: "title" | "description" | "image", value: string) => {
+      const shareMeta = { ...config.shareMeta, [field]: value || undefined };
+      onChange({
+        ...config,
+        shareMeta: shareMeta.title ?? shareMeta.description ?? shareMeta.image ? shareMeta : undefined,
+      });
+    },
+    [config, onChange]
+  );
+
   const appendMomentsUrls = useCallback(
     (urls: string[]) => {
       const current = config.images?.moments ?? [];
@@ -644,6 +655,42 @@ export default function EventConfigForm({ config, onChange, eventSlug }: EventCo
               onChange={(e) => setTop("footerText", e.target.value)}
               placeholder="e.g. Made with love · dearguest.link"
             />
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h4 className={SECTION_TITLE_CLASS}>Link preview (when shared)</h4>
+        <p className={SECTION_TITLE_CLASS_MUTED}>Customize how the invite link looks when shared (WhatsApp, social, etc.): title, description, and thumbnail. Leave blank to use defaults (event/couple name and a generic description).</p>
+        <div className="grid gap-3 sm:grid-cols-1">
+          <div>
+            <label className={LABEL_CLASS_SM}>Share title</label>
+            <input
+              className={INPUT_CLASS}
+              value={config.shareMeta?.title ?? ""}
+              onChange={(e) => setShareMeta("title", e.target.value)}
+              placeholder="e.g. Raphael & Christine — You're invited"
+            />
+          </div>
+          <div>
+            <label className={LABEL_CLASS_SM}>Share description</label>
+            <input
+              className={INPUT_CLASS}
+              value={config.shareMeta?.description ?? ""}
+              onChange={(e) => setShareMeta("description", e.target.value)}
+              placeholder="e.g. View your invitation and RSVP"
+            />
+          </div>
+          <div>
+            <label className={LABEL_CLASS_SM}>Share thumbnail (image URL)</label>
+            <input
+              type="url"
+              className={INPUT_CLASS}
+              value={config.shareMeta?.image ?? ""}
+              onChange={(e) => setShareMeta("image", e.target.value)}
+              placeholder="https://... or use invitation front image URL"
+            />
+            <p className="text-xs text-slate-500 mt-1">Use a full URL. Recommended size: 1200×630 px for best previews.</p>
           </div>
         </div>
       </section>

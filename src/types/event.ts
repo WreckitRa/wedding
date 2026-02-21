@@ -83,6 +83,13 @@ export interface EventConfig {
     subtitle?: string;
     href?: string;
   }>;
+  /** Meta tags for invitee URLs when shared (og:title, og:description, og:image, etc.) */
+  shareMeta?: {
+    title?: string;
+    description?: string;
+    /** Thumbnail image URL for link previews (e.g. invitation front or custom image) */
+    image?: string;
+  };
 }
 
 export interface Event {
