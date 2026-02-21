@@ -10,7 +10,8 @@ import { authMiddleware, requireMainAdmin, requireEventAdmin, signToken } from "
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const uploadsDir = path.join(__dirname, "..", "uploads");
+// Use data/uploads so uploads persist when Railway volume is mounted at server/data
+const uploadsDir = path.join(__dirname, "..", "data", "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const uploadMoments = multer({

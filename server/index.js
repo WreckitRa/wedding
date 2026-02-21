@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 const __dirnameServer = path.dirname(fileURLToPath(import.meta.url));
@@ -80,8 +81,13 @@ app.use("/api/events", createEventsRouter(db));
 app.use("/api/early-access", createEarlyAccessRouter(db));
 app.use("/api/admin", createAdminRouter(db));
 
-// Uploaded moment images (per-event)
-const uploadsPath = path.join(__dirname, "uploads");
+// Uploaded images (per-event). Stored under data/ so they persist when Railway volume is mounted at server/data
+const uploadsPath = path.join(__dirname, "data", "uploads");
+if (!fs.existsSync(uploadsPath)) {
+  try {
+    fs.mkdirSync(uploadsPath, { recursive: true });
+  } catch (_) {}
+}
 app.use("/uploads", express.static(uploadsPath));
 
 // Optional: serve frontend build (for single-server deploy)

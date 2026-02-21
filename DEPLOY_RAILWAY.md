@@ -47,13 +47,15 @@ Do **not** set `VITE_API_URL`; the app is served from the same origin on Railway
 
 ### 1.5 Persist data (SQLite + uploads)
 
-The server uses `server/data/` for the SQLite database and uploads. So that data survives redeploys:
+The server stores both the SQLite database and **uploaded images** under `server/data/` (database at `server/data/wedding.db` when using default `SQLITE_PATH`, uploads at `server/data/uploads/`). So that data survives redeploys:
 
 1. In the service, go to **Settings** → **Volumes** (or **Storage**).
 2. Add a volume and mount it at:  
    `server/data`  
    (path relative to the app root).
 3. Redeploy once so the DB and uploads use the volume.
+
+If you had images before this change, they were stored in `server/uploads/` and were lost on each deploy. After updating, new uploads go to `server/data/uploads/` and persist. Re-upload any invitation/moments images from the event admin if needed.
 
 ### 1.6 Deploy and get the URL
 

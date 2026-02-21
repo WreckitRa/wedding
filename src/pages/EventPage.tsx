@@ -11,7 +11,7 @@ import WelcomeSection from "../components/WelcomeSection";
 import { useEvent } from "../hooks/useEvent";
 import { useEventGuest } from "../hooks/useEventGuest";
 import { useMetaTags } from "../hooks/useMetaTags";
-import { getPageTitle } from "../utils/app";
+import { getPageTitle, getBaseUrl } from "../utils/app";
 import type { EventConfig } from "../types/event";
 import type { Guest } from "../types/event";
 
@@ -114,7 +114,12 @@ export default function EventPage() {
   const metaDescription = shareMeta?.description?.trim() || "You're invited — view your invitation and RSVP.";
   const metaUrl =
     typeof window !== "undefined" ? window.location.href : undefined;
-  const metaImage = shareMeta?.image?.trim() || undefined;
+  let metaImage = shareMeta?.image?.trim() || undefined;
+  // Crawlers (WhatsApp, Twitter, etc.) require og:image to be an absolute URL
+  if (metaImage && !/^https?:\/\//i.test(metaImage)) {
+    const base = getBaseUrl().replace(/\/$/, "");
+    metaImage = base + (metaImage.startsWith("/") ? metaImage : "/" + metaImage);
+  }
   useMetaTags(
     metaTitle ? getPageTitle(metaTitle) : "",
     metaTitle ? metaDescription : "",

@@ -31,5 +31,6 @@ server/.env
 server/.env.*
 !server/.env.example
 
-# Uploaded moment images (per event)
+# Data and uploads (DB + uploaded images; on Railway these live on a volume)
 server/uploads
+server/data
