@@ -97,8 +97,11 @@ app.use(express.static(distPath));
 
 // Invite URL meta injection: crawlers (WhatsApp, etc.) don't run JS, so we inject og:* into HTML for /e/:slug and /e/:slug/invite/:token
 const INVITE_PATH_RE = /^\/e\/([^/]+)(?:\/invite\/([^/]+))?\/?$/;
-const DEFAULT_TITLE = "DearGuest | Your guestlist runs itself";
 const SITE_NAME = "DearGuest";
+// Exact strings from index.html so we can replace them reliably (built index may differ slightly from source)
+const DEFAULT_TITLE = "DearGuest | Your guestlist runs itself";
+const DEFAULT_DESC_FULL = "One link. Guests RSVP, you see who opened and who's pending. Smart reminders by WhatsApp and email—no chasing. Built for weddings and events.";
+const DEFAULT_DESC_OG = "One link. Guests RSVP, you see who opened and who's pending. Smart reminders by WhatsApp and email. Built for weddings and events.";
 
 function escapeHtml(s) {
   if (typeof s !== "string") return "";
@@ -139,13 +142,12 @@ app.get("*", (req, res, next) => {
     if (err) {
       return res.sendFile(indexPath, (e) => (e ? res.status(404).json({ error: "Not found" }) : null));
     }
+    const safeDesc = escapeHtml(description);
+    // Replace exact default strings so we don't depend on regex matching built HTML structure (fullTitle is already safe)
     let out = html
-      .replace(/<title>[\s\S]*?<\/title>/, `<title>${fullTitle}</title>`)
-      .replace(/<meta name="description" content="[^"]*"\/?>/, `<meta name="description" content="${escapeHtml(description)}" />`)
-      .replace(/<meta property="og:title" content="[^"]*"\/?>/, `<meta property="og:title" content="${escapeHtml(fullTitle)}" />`)
-      .replace(/<meta property="og:description" content="[^"]*"\/?>/, `<meta property="og:description" content="${escapeHtml(description)}" />`)
-      .replace(/<meta name="twitter:title" content="[^"]*"\/?>/, `<meta name="twitter:title" content="${escapeHtml(fullTitle)}" />`)
-      .replace(/<meta name="twitter:description" content="[^"]*"\/?>/, `<meta name="twitter:description" content="${escapeHtml(description)}" />`);
+      .split(DEFAULT_TITLE).join(fullTitle)
+      .split(DEFAULT_DESC_FULL).join(safeDesc)
+      .split(DEFAULT_DESC_OG).join(safeDesc);
     if (imageUrl) {
       const imgTag = `<meta property="og:image" content="${escapeHtml(imageUrl)}" />`;
       const twitterImg = `<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />`;
