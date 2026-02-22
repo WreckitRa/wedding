@@ -129,8 +129,13 @@ app.get("*", (req, res, next) => {
   }
   const config = typeof event.config === "string" ? JSON.parse(event.config) : event.config || {};
   const shareMeta = config.shareMeta || {};
-  const title = (shareMeta.title && shareMeta.title.trim()) || config.coupleNames || event.name || "";
-  const fullTitle = title ? `${escapeHtml(title)} — ${SITE_NAME}` : DEFAULT_TITLE;
+  // Use share form values exactly when set; otherwise fall back to couple/event name or defaults
+  const customTitle = shareMeta.title && shareMeta.title.trim();
+  const fullTitle = customTitle
+    ? escapeHtml(customTitle)
+    : (config.coupleNames || event.name)
+      ? `${escapeHtml(config.coupleNames || event.name)} — ${SITE_NAME}`
+      : DEFAULT_TITLE;
   const description = (shareMeta.description && shareMeta.description.trim()) || "You're invited — view your invitation and RSVP.";
   const origin = `${req.protocol}://${req.get("host") || req.hostname}`.replace(/\/$/, "");
   let imageUrl = shareMeta.image && shareMeta.image.trim();
