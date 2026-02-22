@@ -21,6 +21,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3001;
 
 const app = express();
+app.set("trust proxy", 1); // so req.protocol is correct behind Railway/reverse proxies (for og:image URL)
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 
@@ -93,10 +94,74 @@ app.use("/uploads", express.static(uploadsPath));
 // Optional: serve frontend build (for single-server deploy)
 const distPath = path.join(__dirname, "..", "dist");
 app.use(express.static(distPath));
+
+// Invite URL meta injection: crawlers (WhatsApp, etc.) don't run JS, so we inject og:* into HTML for /e/:slug and /e/:slug/invite/:token
+const INVITE_PATH_RE = /^\/e\/([^/]+)(?:\/invite\/([^/]+))?\/?$/;
+const DEFAULT_TITLE = "DearGuest | Your guestlist runs itself";
+const SITE_NAME = "DearGuest";
+
+function escapeHtml(s) {
+  if (typeof s !== "string") return "";
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/api")) return next();
-  res.sendFile(path.join(distPath, "index.html"), (err) => {
-    if (err) res.status(404).json({ error: "Not found" });
+  const m = req.path.match(INVITE_PATH_RE);
+  if (!m) {
+    return res.sendFile(path.join(distPath, "index.html"), (err) => {
+      if (err) res.status(404).json({ error: "Not found" });
+    });
+  }
+  const eventSlug = m[1];
+  const event = db.prepare("SELECT id, slug, name, config FROM events WHERE slug = ?").get(eventSlug);
+  if (!event) {
+    return res.sendFile(path.join(distPath, "index.html"), (err) => {
+      if (err) res.status(404).json({ error: "Not found" });
+    });
+  }
+  const config = typeof event.config === "string" ? JSON.parse(event.config) : event.config || {};
+  const shareMeta = config.shareMeta || {};
+  const title = (shareMeta.title && shareMeta.title.trim()) || config.coupleNames || event.name || "";
+  const fullTitle = title ? `${escapeHtml(title)} — ${SITE_NAME}` : DEFAULT_TITLE;
+  const description = (shareMeta.description && shareMeta.description.trim()) || "You're invited — view your invitation and RSVP.";
+  const origin = `${req.protocol}://${req.get("host") || req.hostname}`.replace(/\/$/, "");
+  let imageUrl = shareMeta.image && shareMeta.image.trim();
+  if (imageUrl && !/^https?:\/\//i.test(imageUrl)) {
+    imageUrl = origin + (imageUrl.startsWith("/") ? imageUrl : "/" + imageUrl);
+  }
+  const indexPath = path.join(distPath, "index.html");
+  fs.readFile(indexPath, "utf8", (err, html) => {
+    if (err) {
+      return res.sendFile(indexPath, (e) => (e ? res.status(404).json({ error: "Not found" }) : null));
+    }
+    let out = html
+      .replace(/<title>[\s\S]*?<\/title>/, `<title>${fullTitle}</title>`)
+      .replace(/<meta name="description" content="[^"]*"\/?>/, `<meta name="description" content="${escapeHtml(description)}" />`)
+      .replace(/<meta property="og:title" content="[^"]*"\/?>/, `<meta property="og:title" content="${escapeHtml(fullTitle)}" />`)
+      .replace(/<meta property="og:description" content="[^"]*"\/?>/, `<meta property="og:description" content="${escapeHtml(description)}" />`)
+      .replace(/<meta name="twitter:title" content="[^"]*"\/?>/, `<meta name="twitter:title" content="${escapeHtml(fullTitle)}" />`)
+      .replace(/<meta name="twitter:description" content="[^"]*"\/?>/, `<meta name="twitter:description" content="${escapeHtml(description)}" />`);
+    if (imageUrl) {
+      const imgTag = `<meta property="og:image" content="${escapeHtml(imageUrl)}" />`;
+      const twitterImg = `<meta name="twitter:image" content="${escapeHtml(imageUrl)}" />`;
+      if (!out.includes("og:image")) {
+        out = out.replace(/(<meta property="og:type"[^>]*\/?>)/, `$1\n    ${imgTag}`);
+      } else {
+        out = out.replace(/<meta property="og:image" content="[^"]*"\/?>/, imgTag);
+      }
+      if (!out.includes("twitter:image")) {
+        out = out.replace(/(<meta name="twitter:description"[^>]*\/?>)/, `$1\n    ${twitterImg}`);
+      } else {
+        out = out.replace(/<meta name="twitter:image" content="[^"]*"\/?>/, twitterImg);
+      }
+    }
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(out);
   });
 });
 
