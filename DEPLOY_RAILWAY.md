@@ -47,15 +47,14 @@ Do **not** set `VITE_API_URL`; the app is served from the same origin on Railway
 
 ### 1.5 Persist data (SQLite + uploads)
 
-The server stores both the SQLite database and **uploaded images** under `server/data/` (database at `server/data/wedding.db` when using default `SQLITE_PATH`, uploads at `server/data/uploads/`). So that data survives redeploys:
+The server keeps the database and **uploaded images** in the **same directory**. So when you point the DB at a volume, uploads stay there too and survive redeploys.
 
 1. In the service, go to **Settings** â†’ **Volumes** (or **Storage**).
-2. Add a volume and mount it at:  
-   `server/data`  
-   (path relative to the app root).
-3. Redeploy once so the DB and uploads use the volume.
+2. Add a volume and set the **mount path** to an absolute path, e.g. **`/data`**.
+3. In **Variables**, set **`SQLITE_PATH`** to a path **on that volume**, e.g. **`/data/wedding.db`**.
+4. Redeploy once. The app will put the DB at `/data/wedding.db` and uploads at `/data/uploads/`, so both persist.
 
-If you had images before this change, they were stored in `server/uploads/` and were lost on each deploy. After updating, new uploads go to `server/data/uploads/` and persist. Re-upload any invitation/moments images from the event admin if needed.
+If you leave `SQLITE_PATH` unset, the app uses `server/data/` (no volume), and both DB and uploads are lost on each deploy. After adding the volume and `SQLITE_PATH`, re-upload any invitation/moments images from the event admin if they were lost.
 
 ### 1.6 Deploy and get the URL
 
@@ -109,7 +108,7 @@ If you only set up `www` in Railway, you can add a redirect in Hostinger (e.g. â
 - [ ] Railway project created and repo connected.
 - [ ] Build: `npm run deploy:build`, Start: `npm start`.
 - [ ] Variables set: `JWT_SECRET`, `MAIN_ADMIN_EMAIL`, `MAIN_ADMIN_PASSWORD`.
-- [ ] Volume mounted at `server/data`.
+- [ ] Volume mounted (e.g. at `/data`) and `SQLITE_PATH` set (e.g. `/data/wedding.db`) so DB and uploads persist.
 - [ ] Public URL works (`*.up.railway.app`).
 - [ ] Custom domain added in Railway; CNAME (and root if supported) set in Hostinger to Railwayâ€™s target.
 - [ ] DNS propagated; HTTPS works on your domain.
@@ -121,7 +120,7 @@ If you only set up `www` in Railway, you can add a redirect in Hostinger (e.g. â
 | Variable              | Required | Description |
 |-----------------------|----------|-------------|
 | `PORT`                | No       | Set by Railway. |
-| `SQLITE_PATH`         | No       | Default `./data/wedding.db`. |
+| `SQLITE_PATH`         | No       | Path to DB file. Set to a path on your volume (e.g. `/data/wedding.db`) so DB and uploads persist. |
 | `JWT_SECRET`          | Yes      | Long random string. |
 | `MAIN_ADMIN_EMAIL`     | Yes      | Admin login. |
 | `MAIN_ADMIN_PASSWORD`  | Yes      | Admin password. |

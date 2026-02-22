@@ -25,6 +25,9 @@ console.log("[DB] Using database at:", dbPath);
 const dbDir = path.dirname(dbPath);
 if (!existsSync(dbDir)) mkdirSync(dbDir, { recursive: true });
 
+/** Directory for persistent data (same as DB dir). Use for uploads so they persist with the same volume as the DB. */
+export const persistentDataDir = dbDir;
+
 const db = new Database(dbPath);
 db.pragma("journal_mode = WAL");
 db.pragma("foreign_keys = ON");

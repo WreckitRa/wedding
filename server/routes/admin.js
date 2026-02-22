@@ -6,12 +6,13 @@ import bcrypt from "bcryptjs";
 import { nanoid } from "nanoid";
 import multer from "multer";
 import { authMiddleware, requireMainAdmin, requireEventAdmin, signToken } from "../middleware/auth.js";
+import { persistentDataDir } from "../db/index.js";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-// Use data/uploads so uploads persist when Railway volume is mounted at server/data
-const uploadsDir = path.join(__dirname, "..", "data", "uploads");
+// Use same persistent dir as DB so uploads survive deploys when volume is mounted (e.g. SQLITE_PATH=/data/wedding.db → /data/uploads)
+const uploadsDir = path.join(persistentDataDir, "uploads");
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const uploadMoments = multer({

@@ -11,7 +11,7 @@ dotenv.config({ path: path.join(__dirnameServer, "..", ".env"), override: false 
 import express from "express";
 import cors from "cors";
 import bcrypt from "bcryptjs";
-import db from "./db/index.js";
+import db, { persistentDataDir } from "./db/index.js";
 import { createAuthRouter } from "./routes/auth.js";
 import { createEventsRouter } from "./routes/events.js";
 import { createEarlyAccessRouter } from "./routes/earlyAccess.js";
@@ -82,8 +82,8 @@ app.use("/api/events", createEventsRouter(db));
 app.use("/api/early-access", createEarlyAccessRouter(db));
 app.use("/api/admin", createAdminRouter(db));
 
-// Uploaded images (per-event). Stored under data/ so they persist when Railway volume is mounted at server/data
-const uploadsPath = path.join(__dirname, "data", "uploads");
+// Uploaded images: same persistent dir as DB so they survive deploys (e.g. volume at /data with SQLITE_PATH=/data/wedding.db)
+const uploadsPath = path.join(persistentDataDir, "uploads");
 if (!fs.existsSync(uploadsPath)) {
   try {
     fs.mkdirSync(uploadsPath, { recursive: true });
